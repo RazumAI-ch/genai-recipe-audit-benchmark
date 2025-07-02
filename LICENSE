@@ -1,0 +1,23 @@
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION...
+
+   [⚠️ Standard Apache license text continues here — skipped for brevity, I’ll give you the full version in a file if needed]
+
+   END OF TERMS AND CONDITIONS
+
+Attribution and Collaboration Notice:
+
+This project is released publicly to support transparency, reproducibility, and professional visibility.
+
+While fully open-source under Apache 2.0, meaningful reuse (e.g., running the benchmark at full scale) may involve substantial costs. As such, casual duplication is unlikely, but deliberate adoption by research groups or organizations is welcomed.
+
+If you reuse this framework, please:
+- Include proper attribution and a link to the original repository
+- Indicate any modifications
+- Consider reaching out for co-authorship or collaboration if you’re extending it
+
+Author: Igor Razumny
+[LinkedIn](https://www.linkedin.com/in/irazum)
