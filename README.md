@@ -1,41 +1,87 @@
 # 🧪 GenAI Recipe Audit Benchmark
 
-A public benchmark framework for evaluating Generative AI models (e.g., OpenAI GPT-4o, Claude, Gemini) on their ability to detect quality issues and GxP-relevant deviations in structured healthcare manufacturing recipes. Designed for reproducibility, model comparison, and long-term auditability.
+A production-grade benchmark framework for evaluating how well Generative AI models (e.g., OpenAI GPT-4o, Claude, Gemini) detect compliance issues in structured healthcare manufacturing recipes.
+
+Designed for highly regulated environments, this benchmark enables model comparison based on their ability to detect GxP-relevant issues — starting with ALCOA+ and extending (in commercial use) to full process-level evaluation.
+
+---
+
+## 📊 GxP Scoring — Core Output of the Benchmark
+
+The benchmark generates **GxP scores** to measure model performance across multiple dimensions of regulatory relevance:
+
+| Score     | Scope                        | Availability |
+|-----------|------------------------------|--------------|
+| **GxP1**  | ALCOA+ deviation detection    | ✅ Open source |
+| **GxP2**  | Structured recipe logic       | 🔒 Commercial |
+| **GxP3**  | Execution trace evaluation    | 🔒 Commercial |
+
+### ✅ GxP1 — ALCOA+ Checks (Live)
+Detects known violations of ALCOA+ principles such as:
+- Inaccurate timestamps
+- Missing or incorrect operator entries
+- Overwritten or inconsistent status fields
+
+Each model receives a normalized GxP1 score (0–1), reflecting its ability to catch these intentionally injected issues.
+
+---
+
+### 🔒 GxP2 & GxP3 — For Real-World Data (Commercial)
+Rather than relying on simulated complexity, GxP2 and GxP3 are reserved for evaluation using **your actual recipe and execution data**.
+
+- **GxP2** evaluates logical consistency in multi-step recipes (e.g., sequence, duration, materials)
+- **GxP3** compares recorded execution logs against expected recipe flows
+
+> These tiers are available through AICloudConsulting as part of a commercial benchmark offering.
+
+---
+
+### 🧠 Unified GxP Score (Planned)
+A future `GxP Score` may combine tiers into a weighted composite:
+
+```text
+GxP Score = w1 × GxP1 + w2 × GxP2 + w3 × GxP3
+```
+
+This allows simple performance comparison while preserving detailed per-tier diagnostics.
 
 ---
 
 ## 🔍 Core Capabilities
 
-- Upload JSON or CSV recipe files  
-- Audit entries using multiple GenAI models  
-- Detect deviations by ALCOA+ principle  
-- Generate detailed PDF audit reports  
-- Store JSON logs of all runs for traceability  
+- Generate synthetic recipe records with embedded issues  
+- Run benchmark evaluations across multiple GenAI models  
+- Score results based on GxP1 (ALCOA+ detection)  
+- Compare cost, speed, and quality across models  
+- Track all runs with full reproducibility  
+- Use results to guide model selection or integration decisions  
 
 ---
 
 ## 🧠 Key Features
 
-- ✅ Model-agnostic backend (OpenAI, Claude, Gemini, etc.)  
-- ✅ Pluggable prompts and evaluation logic per principle  
-- ✅ Cross-model performance comparison  
-- ✅ Controlled fault injection and synthetic data  
-- ✅ Fully timestamped outputs for reproducibility  
-- ✅ Cost-aware configuration for scalable execution  
+- ✅ Model-agnostic architecture (OpenAI, Claude, Gemini, etc.)  
+- ✅ Modular scoring logic by deviation type  
+- ✅ Controlled fault injection with traceable metadata  
+- ✅ Per-run cost tracking (token or infra-based)  
+- ✅ Fully timestamped results for audit readiness  
+- ✅ Designed for long-term automated benchmarking  
 
 ---
 
 ## 📂 Project Structure
 
 ```
-app/           - Streamlit UI frontend
-engines/       - Model integration (OpenAI, Gemini, Claude, etc.)
-evaluator/     - Evaluation logic per deviation type
-pdf/           - PDF generation for reports
-test_data/     - Example recipe files with labeled issues
-logs/          - JSON logs of each benchmark run
-reports/       - Output PDF audit reports
-prompts/       - Prompt templates for LLM evaluation
+genai-recipe-audit-benchmark/
+├── main.py                # CLI entry point for running a full benchmark
+├── db/                    # PostgreSQL schema, migrations, utilities
+│   └── schema.sql         # GxP1-focused schema with cost + score tracking
+├── benchmark/             # Core logic (BenchmarkRunner, scoring, orchestration)
+├── llms/                  # LLM interface layer + OpenAI, Gemini implementations
+├── config/                # Cost and model config (e.g., pricing.yaml)
+├── docs/                  # GxP scoring logic, methodology
+├── Makefile               # Utility tasks: setup-db, reset-db, run
+└── README.md              # This file
 ```
 
 ---
@@ -44,23 +90,27 @@ prompts/       - Prompt templates for LLM evaluation
 
 ```bash
 pip install -r requirements.txt
-streamlit run app/main.py
+make setup-db
+python main.py
 ```
 
-See the app interface for model selection, entry limits, and PDF download.
+This will:
+- Create or reuse the current benchmark sample
+- Load configured LLMs
+- Run evaluation excluding self-generated records
+- Store token counts, timing, and normalized scores
+- Output per-model cost and GxP1 quality metrics
 
 ---
 
 ## 📄 Output Includes
 
-- ✅ Audit summary PDF report:
-  - Timestamp (incl. time zone)  
-  - File name audited  
-  - Models used  
-  - Deviation type summary  
-  - Compliance metrics  
-  - Appendix with full input data  
-- ✅ JSON log of the benchmark run with metadata  
+- ✅ Timestamped run metadata  
+- ✅ Full list of models used  
+- ✅ Cost breakdown per model (token-based or infra-based)  
+- ✅ GxP1 quality score (normalized, 0–1)  
+- ✅ JSON logs with record-level traceability  
+- 🔒 Optional: GxP2 and GxP3 scoring with commercial data
 
 ---
 
@@ -68,23 +118,26 @@ See the app interface for model selection, entry limits, and PDF download.
 
 This project is released under the [Apache License 2.0](./LICENSE).
 
-The benchmark is intentionally designed for transparency and reproducibility, but running it at scale may involve substantial API usage costs. While the repository is public, its design and structure are unlikely to support casual reuse without thoughtful adaptation.
+The benchmark is transparent and reproducible, but large-scale use may require substantial cloud/API compute.  
+If you use this project:
 
-If you use or extend this project in a paper, product, or audit system:
 - Please credit the original author  
 - Link to this repository  
-- Clearly document any changes or extensions  
+- Clearly note any scoring or data model changes  
 
-For inquiries, collaboration, or co-authorship, contact information is available via the GitHub or LinkedIn profiles linked in the [README](#).
+For collaboration, co-authorship, or enterprise services, visit:  
+[AICloudConsulting.com](https://aicloudconsulting.com)
 
 ---
 
-## 💡 Additional Notes
+## 💼 Commercial Services
 
-- Entry limits can be adjusted via config or UI  
-- Includes clean and 100%-faulty control datasets to test model over/underflagging behavior  
-- Prompt templates can be modified for language alignment, site-specific policies, or regulatory emphasis  
-- Designed for long-term benchmark automation with minimal manual intervention  
+If your organization wants to:
+- Benchmark GenAI models on your actual recipes and execution data
+- Automate future GxP checks using the best-performing models
+- Receive custom scoring, integration support, and audit reports
+
+👉 [Contact AICloudConsulting](https://aicloudconsulting.com) to start a tailored benchmark pilot.
 
 ---
 
