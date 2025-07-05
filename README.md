@@ -60,12 +60,27 @@ This allows simple performance comparison while preserving detailed per-tier dia
 
 ## 🧠 Key Features
 
-- ✅ Model-agnostic architecture (OpenAI, Claude, Gemini, etc.)  
-- ✅ Modular scoring logic by deviation type  
-- ✅ Controlled fault injection with traceable metadata  
-- ✅ Per-run cost tracking (token or infra-based)  
-- ✅ Fully timestamped results for audit readiness  
-- ✅ Designed for long-term automated benchmarking  
+- ✅ Model-agnostic backend (GPT-4 class, Gemini class, Claude class, etc.)
+- ✅ Pluggable prompts and evaluation logic per principle
+- ✅ Cross-model performance comparison
+- ✅ Controlled fault injection and synthetic data
+- ✅ Fully timestamped outputs for reproducibility
+- ✅ Cost-aware configuration for scalable execution
+- ✅ Planned model coverage includes (in order of expected interest from prospective healthcare and industrial adopters):
+
+  – GPT-4o  
+  – Claude 3 Opus (via AWS Bedrock)  
+  – Gemini 1.5 Pro  
+  – Grok-1  
+  – LLaMA 3 65B  
+  – Mixtral 8x7B  
+  – Yi-34B  
+  – Gemma 27B  
+  – Mistral 7B  
+  – LLaMA 3 8B  
+  – Command R+  
+  – Phi-3 Medium  
+  – Falcon 180B
 
 ---
 
