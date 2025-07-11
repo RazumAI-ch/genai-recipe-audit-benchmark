@@ -39,7 +39,7 @@ Rather than relying on simulated complexity, GxP2 and GxP3 are reserved for eval
 ### 🧠 Unified GxP Score (Planned)
 A future `GxP Score` may combine tiers into a weighted composite:
 
-```text
+```
 GxP Score = w1 × GxP1 + w2 × GxP2 + w3 × GxP3
 ```
 
@@ -98,6 +98,28 @@ genai-recipe-audit-benchmark/
 ├── Makefile               # Utility tasks: setup-db, reset-db, run
 └── README.md              # This file
 ```
+
+---
+
+## 🗃️ Database Design
+
+The benchmark uses **PostgreSQL** as its backend, defined via a custom schema located in `db/schema.sql`.
+
+Key features of the schema:
+- Tracks all LLMs, benchmark runs, and generated samples
+- Stores injected deviations per ALCOA+ principle
+- Records LLM evaluation output per record and run
+- Computes per-run costs and GxP scores (GxP1 live, GxP2+GxP3 planned)
+- Optimized for both audit traceability and scoring performance
+
+By default, the database is deployed locally via Docker:
+
+```bash
+docker-compose up -d
+make setup-db
+```
+
+All tables are fully documented within the schema using a `schema_docs` table, and are ready for long-term scaling and analytics use.
 
 ---
 
