@@ -90,14 +90,23 @@ This allows simple performance comparison while preserving detailed per-tier dia
 genai-recipe-audit-benchmark/
 ├── main.py                # CLI entry point for running a full benchmark
 ├── db/                    # PostgreSQL schema, migrations, utilities
-│   └── schema.sql         # GxP1-focused schema with cost + score tracking
+│   ├── schema.sql         # GxP1-focused schema with cost + score tracking
+│   └── seeds/             # Static inserts for LLMs and deviation types
+│       ├── llms.sql       # LLMs covered by the benchmark
+│       └── deviation_types.sql  # All ALCOA+ deviation types
 ├── benchmark/             # Core logic (BenchmarkRunner, scoring, orchestration)
 ├── llms/                  # LLM interface layer + OpenAI, Gemini implementations
 ├── config/                # Cost and model config (e.g., pricing.yaml)
-├── docs/                  # GxP scoring logic, methodology
+├── docs/                  # GxP scoring logic, methodology and CLI usage
 ├── Makefile               # Utility tasks: setup-db, reset-db, run
 └── README.md              # This file
 ```
+
+---
+
+## 📃 CLI Guide
+
+For CLI and database setup instructions, see [docs/cli.md](docs/cli.md)
 
 ---
 
