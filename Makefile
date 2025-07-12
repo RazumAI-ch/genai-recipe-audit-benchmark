@@ -2,55 +2,65 @@
 # 🧪 GenAI Recipe Audit Benchmark – Makefile
 # ============================================
 
-# Start PostgreSQL container
+# 🐘 PostgreSQL Container Lifecycle
+
+# Start PostgreSQL container in detached mode
 start-db:
 	docker-compose up -d
 
-# Stop all containers
+# Stop and remove containers only (data remains)
 stop-db:
 	docker-compose down
 
-# Clean up containers and volumes (erases DB!)
+# Stop containers AND remove attached volumes (⚠️ this erases all DB data!)
 clean:
 	docker-compose down -v
 
-# Drop everything and start fresh
+# Completely reset the DB from scratch: clean + recreate + seed
 recreate-db: clean start-db reset-db
 
-# Load schema (drops + recreates all tables, no seeds)
+# 🏗️ Schema + Seed Initialization
+
+# Apply schema only (no seeds); drops + recreates all tables
 setup-db:
 	docker exec -i genai-recipe-audit-benchmark-db-1 \
 	psql -U benchmark -d benchmarkdb < db/schema.sql
 
-# Load LLM definitions
+# Load predefined LLMs into the llms table
 load-llms:
 	docker exec -i genai-recipe-audit-benchmark-db-1 \
 	psql -U benchmark -d benchmarkdb < db/seeds/llms.sql
 
-# Load ALCOA+ deviation types
+# Load ALCOA+ deviation types into the deviation_types table
 load-deviation-types:
 	docker exec -i genai-recipe-audit-benchmark-db-1 \
 	psql -U benchmark -d benchmarkdb < db/seeds/deviation_types.sql
 
-# Full reset and seed
+# Run full DB setup: schema + LLMs + deviation types
 reset-db: setup-db load-llms load-deviation-types
 
-# Run the benchmark
+# ▶️ Benchmark Execution
+
+# Run the benchmark script (main entry point)
 run:
 	python main.py
 
-# View contents of LLMs table
+# 🔍 Inspect DB Content
+
+# Show all registered LLMs
 show-llms:
 	docker exec -it genai-recipe-audit-benchmark-db-1 \
 	psql -U benchmark -d benchmarkdb -c "SELECT id, name, provider, model FROM llms ORDER BY id;"
 
-# View contents of Deviation Types table
+# Show all available deviation types
 show-deviation-types:
 	docker exec -it genai-recipe-audit-benchmark-db-1 \
 	psql -U benchmark -d benchmarkdb -c "SELECT id, type, alcoa_principle, severity FROM deviation_types ORDER BY id;"
 
+# Alias for convenience
+show-deviations: show-deviation-types
 
-# Show DB record counts across key tables
+# Show row counts for all major benchmark tables
 show-db-stats:
 	docker exec -it genai-recipe-audit-benchmark-db-1 \
 	psql -U benchmark -d benchmarkdb -c "\
@@ -61,3 +71,16 @@ show-db-stats:
 	SELECT 'deviations', COUNT(*) FROM deviations UNION ALL \
 	SELECT 'record_eval_results', COUNT(*) FROM record_eval_results UNION ALL \
 	SELECT 'run_llm_results', COUNT(*) FROM run_llm_results;"
+
+# 💾 Backup / Restore Utilities
+
+# Export full database contents to SQL file (backup)
+export-db:
+	docker exec genai-recipe-audit-benchmark-db-1 \
+	pg_dump -U benchmark -d benchmarkdb > db/backup.sql
+
+# Restore database from previously exported SQL file
+import-db:
+	docker cp db/backup.sql genai-recipe-audit-benchmark-db-1:/tmp/
+	docker exec -i genai-recipe-audit-benchmark-db-1 \
+	psql -U benchmark -d benchmarkdb < /tmp/backup.sql
