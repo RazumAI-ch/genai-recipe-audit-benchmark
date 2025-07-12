@@ -13,5 +13,15 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  cli:
+    build:
+      context: .
+      dockerfile: Dockerfile.cli
+    volumes:
+      - .:/app
+    working_dir: /app
+    stdin_open: true
+    tty: true
+
 volumes:
   pgdata:

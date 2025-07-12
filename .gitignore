@@ -1,0 +1,25 @@
+# File: .gitignore
+
+# Python cache and metadata
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Environment and secrets
+.env
+.env.*
+
+# Local DB, logs, or backups
+*.sqlite3
+db/backup.sql
+
+# IDE and editor settings
+.idea/
+.vscode/
+.DS_Store
+
+# 🟡 Output artifacts
+/outputs/
+/outputs/*.pdf
+/outputs/*.csv
+/outputs/*.json

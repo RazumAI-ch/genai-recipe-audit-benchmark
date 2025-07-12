@@ -112,3 +112,14 @@ import-db:
         setup-db load-llms load-deviation-types reset-db \
         run show-llms show-deviation-types show-deviations show-db-stats \
         backup-db import-db
+
+# ============================================================================
+# ⚙️ One-time test seed for validating benchmark pipeline
+# - Inserts 1 benchmark_run named 'baseline-chatgpt-001'
+# - Adds 100 sample_records generated as if by GPT-4o (llm_id = 1)
+# - Only 2 records (2%) include deviations
+# - Used to simulate LLM scoring pipeline before real integration
+# ============================================================================
+load-baseline-chatgpt:
+	docker exec -i genai-recipe-audit-benchmark-db-1 \
+	psql -U benchmark -d benchmarkdb < db/seeds/baseline_chatgpt_seed.sql

@@ -1,0 +1,10 @@
+# File: config/openai.yaml
+
+provider: openai
+model: gpt-4o
+api_key_env: OPENAI_API_KEY
+base_url: https://api.openai.com/v1
+timeout_seconds: 30
+max_retries: 3
+rate_limit_sleep: 0.5  # seconds between batches if needed
+batch_size: 20         # how many records to send per API batch (if we support batching)
