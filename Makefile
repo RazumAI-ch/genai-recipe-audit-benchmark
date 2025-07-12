@@ -75,7 +75,7 @@ show-db-stats:
 # 💾 Backup / Restore Utilities
 
 # Export full database contents to SQL file (backup)
-export-db:
+backup-db:
 	docker exec genai-recipe-audit-benchmark-db-1 \
 	pg_dump -U benchmark -d benchmarkdb > db/backup.sql
 
@@ -84,3 +84,31 @@ import-db:
 	docker cp db/backup.sql genai-recipe-audit-benchmark-db-1:/tmp/
 	docker exec -i genai-recipe-audit-benchmark-db-1 \
 	psql -U benchmark -d benchmarkdb < /tmp/backup.sql
+
+# ============================================
+# 📛 .PHONY: Explicitly mark all targets as non-file-based
+# ============================================
+#
+# Why this is important:
+# -----------------------
+# In Make, a target is normally associated with a file. For example:
+#     output.txt: input.txt
+#         <build command>
+#
+# If a file named `output.txt` already exists and is up to date, Make skips the rule.
+#
+# But in this project, none of our targets (like `run`, `reset-db`, `clean`) are files.
+# They're just named procedures (e.g., scripts, docker commands).
+#
+# If we *don't* declare them as `.PHONY`:
+# - Make might skip a target if a file with the same name exists
+# - Editors (like VS Code or PyCharm) might not recognize them correctly
+#
+# Declaring them as `.PHONY` ensures:
+# - They always run when you call them
+# - Make won't be confused by same-named files in your directory
+# - IDEs color them properly and provide autocomplete
+.PHONY: start-db stop-db clean recreate-db \
+        setup-db load-llms load-deviation-types reset-db \
+        run show-llms show-deviation-types show-deviations show-db-stats \
+        backup-db import-db
