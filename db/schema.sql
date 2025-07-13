@@ -1,11 +1,11 @@
 -- ============================================
--- 📦 LLM Benchmark Schema v1.2 (GxP1 Ready)
+-- 📦 LLM Benchmark Schema v1.3 (GxP1 Ready + Explanations)
 -- ============================================
 
 DROP TABLE IF EXISTS
   record_eval_results,
   run_llm_results,
-  deviations,
+  injected_deviations,
   sample_records,
   deviation_types,
   benchmark_runs,
@@ -53,7 +53,7 @@ CREATE TABLE sample_records (
 );
 
 -- Injected Deviations
-CREATE TABLE deviations (
+CREATE TABLE injected_deviations (
     id SERIAL PRIMARY KEY,
     sample_record_id INTEGER REFERENCES sample_records(id) ON DELETE CASCADE,
     deviation_type_id TEXT REFERENCES deviation_types(id),
@@ -67,6 +67,7 @@ CREATE TABLE record_eval_results (
     llm_id INTEGER REFERENCES llms(id) ON DELETE CASCADE,
     sample_record_id INTEGER REFERENCES sample_records(id) ON DELETE CASCADE,
     detected_deviation_ids TEXT[] NOT NULL,
+    deviation_explanations JSONB,
     evaluation_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (run_id, llm_id, sample_record_id)
 );
@@ -134,11 +135,11 @@ INSERT INTO schema_docs (table_name, column_name, description) VALUES
 ('sample_records', 'injected_deviation_ids', 'Precomputed list of deviation IDs injected into this record.'),
 ('sample_records', 'created_at', 'Timestamp when the sample was created.'),
 
--- deviations
-('deviations', 'id', 'Primary key of the injected deviation.'),
-('deviations', 'sample_record_id', 'Record that this deviation was injected into.'),
-('deviations', 'deviation_type_id', 'ID of the deviation type (e.g., "D003").'),
-('deviations', 'created_at', 'Timestamp when the deviation was injected.'),
+-- injected_deviations
+('injected_deviations', 'id', 'Primary key of the injected deviation.'),
+('injected_deviations', 'sample_record_id', 'Record that this deviation was injected into.'),
+('injected_deviations', 'deviation_type_id', 'ID of the deviation type (e.g., "D003").'),
+('injected_deviations', 'created_at', 'Timestamp when the deviation was injected.'),
 
 -- record_eval_results
 ('record_eval_results', 'id', 'Primary key of the record-level evaluation result.'),
@@ -146,6 +147,7 @@ INSERT INTO schema_docs (table_name, column_name, description) VALUES
 ('record_eval_results', 'llm_id', 'LLM used to evaluate the sample.'),
 ('record_eval_results', 'sample_record_id', 'ID of the record being evaluated.'),
 ('record_eval_results', 'detected_deviation_ids', 'List of deviation type IDs detected by the LLM.'),
+('record_eval_results', 'deviation_explanations', 'Optional explanations of detected deviations, keyed by deviation ID.'),
 ('record_eval_results', 'evaluation_time', 'When this evaluation was completed.'),
 
 -- run_llm_results
@@ -164,6 +166,3 @@ INSERT INTO schema_docs (table_name, column_name, description) VALUES
 ('run_llm_results', 'gxp2_score', 'Future: structured recipe consistency score.'),
 ('run_llm_results', 'gxp3_score', 'Future: full trace execution score.'),
 ('run_llm_results', 'created_at', 'Timestamp when this summary was recorded.');
-
-
-

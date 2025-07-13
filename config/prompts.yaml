@@ -6,7 +6,11 @@ user_prompt_prefix: |
   Return only a JSON object with the following structure:
   {
     "sample_record_id": <int>,
-    "detected_deviation_ids": ["D001", "D017", ...]
+    "detected_deviation_ids": ["D001", "D017", ...],
+    "deviation_explanations": {
+      "D001": "Short GxP explanation of this finding.",
+      "D017": "Another short explanation.",
+      ...
+    }
   }
-
-  Do not include any explanation or formatting.
+  Output strictly the following JSON (no explanations, no formatting):

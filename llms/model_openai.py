@@ -1,30 +1,23 @@
 # File: llms/model_openai.py
 
-import os
 import json
 from typing import List, Dict
 from openai import OpenAI
-from llms.base import BaseLLM
+from llms.proprietary import ProprietaryLLM
+from config.paths import OPENAI_CONFIG_PATH
 
 
-class OpenAIModel(BaseLLM):
+class OpenAIModel(ProprietaryLLM):
     """
     Concrete LLM implementation using OpenAI GPT-4o.
-    Loads config from openai.yaml via BaseLLM interface.
+    Loads config from openai.yaml via ProprietaryLLM.
     """
 
     def __init__(self):
-        super().__init__("config/openai.yaml")
+        super().__init__(OPENAI_CONFIG_PATH)
 
     def prepare(self) -> None:
         super().prepare()
-
-        self.api_key = os.getenv(self.model_config["api_key_env"])
-        if not self.api_key:
-            raise ValueError("OpenAI API key environment variable not set.")
-
-        self.model = self.model_config.get("model", "gpt-4o")
-        self.batch_size = self.model_config.get("batch_size", 20)
         self.client = OpenAI(api_key=self.api_key)
 
     def evaluate_batch(self, records: List[Dict]) -> List[Dict]:

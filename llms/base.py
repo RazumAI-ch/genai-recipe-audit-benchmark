@@ -3,8 +3,9 @@
 from abc import ABC
 from typing import Dict, Any
 from llms.interface import LLMInterface
-from config.loader import load_prompt_config
-
+from config.keys import SYSTEM_PROMPT, USER_PROMPT_PREFIX
+from config.paths import PROMPT_CONFIG_PATH
+import yaml
 
 class BaseLLM(LLMInterface, ABC):
     """
@@ -21,8 +22,12 @@ class BaseLLM(LLMInterface, ABC):
     def prepare(self):
         """
         Loads the shared system and user prompt configuration
-        from config/prompts.yaml.
+        from the configured prompt file.
         """
-        self.prompt_config = load_prompt_config()
-        self.system_prompt = self.prompt_config.get("system_prompt", "")
-        self.user_prompt_prefix = self.prompt_config.get("user_prompt_prefix", "")
+        self.prompt_config = self._load_prompt_config()
+        self.system_prompt = self.prompt_config.get(SYSTEM_PROMPT, "")
+        self.user_prompt_prefix = self.prompt_config.get(USER_PROMPT_PREFIX, "")
+
+    def _load_prompt_config(self, path: str = PROMPT_CONFIG_PATH) -> dict:
+        with open(path, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f)
