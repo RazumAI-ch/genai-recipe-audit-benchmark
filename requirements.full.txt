@@ -1,0 +1,12 @@
+psycopg2
+python-dotenv
+openai>=1.2.0
+pyyaml
+torch
+transformers
+datasets
+peft
+trl
+accelerate
+pandas
+bitsandbytes; platform_system != "Darwin"

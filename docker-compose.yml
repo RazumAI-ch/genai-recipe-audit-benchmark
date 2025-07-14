@@ -17,11 +17,13 @@ services:
       dockerfile: Dockerfile.cli
     volumes:
       - .:/app
+      - hf_cache:/root/.cache/huggingface  # ✅ persistent HF model cache
     working_dir: /app
     stdin_open: true
     tty: true
     env_file:
-      - .env  # Load environment variables (like API key)
+      - .env
 
 volumes:
   pgdata:
+  hf_cache:
