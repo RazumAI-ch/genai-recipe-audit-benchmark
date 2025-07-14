@@ -10,6 +10,8 @@ DROP TABLE IF EXISTS
   deviation_types,
   benchmark_runs,
   llms,
+  training_example_deviations,
+  training_examples,
   schema_docs
 CASCADE;
 
@@ -91,6 +93,23 @@ CREATE TABLE run_llm_results (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Training Examples (for LoRA / Full Finetuning)
+CREATE TABLE training_examples (
+    id SERIAL PRIMARY KEY,
+    input_format TEXT NOT NULL CHECK (input_format IN ('json', 'csv')),
+    input_content TEXT NOT NULL,
+    source_sample_id INTEGER REFERENCES sample_records(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE training_example_deviations (
+    training_example_id INTEGER REFERENCES training_examples(id) ON DELETE CASCADE,
+    deviation_type_id TEXT REFERENCES deviation_types(id),
+    explanation TEXT NOT NULL,
+    source_field TEXT NOT NULL,
+    PRIMARY KEY (training_example_id, deviation_type_id)
+);
+
 -- Schema Documentation (optional)
 CREATE TABLE schema_docs (
     table_name TEXT NOT NULL,
@@ -165,4 +184,17 @@ INSERT INTO schema_docs (table_name, column_name, description) VALUES
 ('run_llm_results', 'gxp1_score', 'GxP1 ALCOA+ compliance score (0–1).'),
 ('run_llm_results', 'gxp2_score', 'Future: structured recipe consistency score.'),
 ('run_llm_results', 'gxp3_score', 'Future: full trace execution score.'),
-('run_llm_results', 'created_at', 'Timestamp when this summary was recorded.');
+('run_llm_results', 'created_at', 'Timestamp when this summary was recorded.'),
+
+-- training_examples
+('training_examples', 'id', 'Primary key of the training example.'),
+('training_examples', 'input_format', 'Whether the input was in "json" or "csv" format.'),
+('training_examples', 'input_content', 'Text content of the structured record used as input.'),
+('training_examples', 'source_sample_id', 'Optional reference to source record in sample_records.'),
+('training_examples', 'created_at', 'Timestamp when the training example was created.'),
+
+-- training_example_deviations
+('training_example_deviations', 'training_example_id', 'Reference to the training example record.'),
+('training_example_deviations', 'deviation_type_id', 'ID of the known deviation type applied in this example.'),
+('training_example_deviations', 'explanation', 'Textual explanation of why this record contains the deviation.'),
+('training_example_deviations', 'source_field', 'Field or path in the record where the deviation appears.');

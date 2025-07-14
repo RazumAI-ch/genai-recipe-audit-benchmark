@@ -24,6 +24,7 @@ The project includes a `Makefile` with helpful shortcuts:
 | Command                      | Description                                                   |
 |------------------------------|---------------------------------------------------------------|
 | `make start-db`              | Start PostgreSQL container                                    |
+| `make wait-for-db`           | Wait for DB container to be ready before executing commands   |
 | `make stop-db`               | Stop the PostgreSQL container                                 |
 | `make clean`                 | Stop and remove container and volume                          |
 | `make recreate-db`           | Full reset: wipe DB, recreate schema, load all seeds          |
@@ -35,13 +36,15 @@ The project includes a `Makefile` with helpful shortcuts:
 | `make show-deviation-types`  | Show current contents of the `deviation_types` table          |
 | `make show-deviations`       | Alias for `make show-deviation-types`                         |
 | `make show-db-stats`         | Overview of row counts in all key benchmark tables            |
+| `make show-table-definitions`| Show full schema definition of all tables                     |
 | `make run`                   | Execute the benchmark (`main.py`)                             |
+| `make bootstrap-db`          | Full bootstrap: reset schema, seed LLMs/deviations, insert 100 samples, show table stats + definitions |
 
 Run these from your project root, for example:
 
 ```bash
-make recreate-db
-make show-db-stats
+make bootstrap-db
+make run
 ```
 
 ---
@@ -80,9 +83,18 @@ docker exec -it genai-recipe-audit-benchmark-db-1 \
   SELECT 'deviation_types', COUNT(*) FROM deviation_types UNION ALL \
   SELECT 'benchmark_runs', COUNT(*) FROM benchmark_runs UNION ALL \
   SELECT 'sample_records', COUNT(*) FROM sample_records UNION ALL \
-  SELECT 'deviations', COUNT(*) FROM deviations UNION ALL \
+  SELECT 'injected_deviations', COUNT(*) FROM injected_deviations UNION ALL \
   SELECT 'record_eval_results', COUNT(*) FROM record_eval_results UNION ALL \
   SELECT 'run_llm_results', COUNT(*) FROM run_llm_results;"
+```
+
+### 🧾 View Table Definitions (manual equivalent of `make show-table-definitions`)
+```bash
+docker exec -it genai-recipe-audit-benchmark-db-1 \
+  psql -U benchmark -d benchmarkdb -c "\d+ benchmark_runs"
+docker exec -it genai-recipe-audit-benchmark-db-1 \
+  psql -U benchmark -d benchmarkdb -c "\d+ sample_records"
+...
 ```
 
 ---
