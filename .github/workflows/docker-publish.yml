@@ -20,7 +20,7 @@ jobs:
 
     - name: Build and tag Docker image
       run: |
-        docker build -t igorrazumny/genai-recipe-audit-benchmark:latest .
+        docker build -t igorrazumny/genai-recipe-audit-benchmark:latest -f Dockerfile.cli .
 
     - name: Push to Docker Hub
       run: |
