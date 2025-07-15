@@ -9,7 +9,7 @@ import psycopg2
 from datetime import datetime
 
 # === Config ===
-NUM_RECORDS = 1000
+NUM_RECORDS = 10000
 DB_CONFIG = dict(
     host=os.getenv("DB_HOST", "db"),  # "db" = Docker Compose service name
     dbname=os.getenv("DB_NAME", "benchmarkdb"),

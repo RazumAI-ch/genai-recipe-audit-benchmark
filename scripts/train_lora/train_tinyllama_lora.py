@@ -2,11 +2,17 @@
 
 print("🚀 Starting TinyLlama LoRA training...")
 
+import argparse
+import os
+import platform
+import shutil
+import torch
+from datetime import datetime
+from datasets import load_dataset
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
     TrainingArguments,
-    BitsAndBytesConfig,
     DataCollatorForLanguageModeling
 )
 from peft import (
@@ -15,9 +21,30 @@ from peft import (
     TaskType,
     prepare_model_for_kbit_training
 )
-from datasets import load_dataset
 from trl import SFTTrainer
-from datetime import datetime
+
+# Detect platform
+platform_info = platform.system()
+hostname = platform.node()
+is_mac = platform_info == "Darwin"
+
+# Detect device
+if torch.cuda.is_available():
+    device_name = torch.cuda.get_device_name(0)
+    device_type = "GPU"
+    memory_gb = round(torch.cuda.get_device_properties(0).total_memory / 1e9, 1)
+else:
+    device_name = platform.processor() or "CPU"
+    device_type = "CPU"
+    memory_gb = round(os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') / 1e9, 1) if hasattr(os, 'sysconf') else "unknown"
+
+print(f"🖥️ Platform: {platform_info} ({hostname})")
+print(f"🧠 Device: {device_type} - {device_name} ({memory_gb} GB)")
+
+# CLI args
+parser = argparse.ArgumentParser()
+parser.add_argument("--cpu-friendly", action="store_true", help="Enable 4-bit quantization for CPU or low-RAM training")
+args = parser.parse_args()
 
 # LoRA config
 lora_config = LoraConfig(
@@ -29,12 +56,18 @@ lora_config = LoraConfig(
     task_type=TaskType.CAUSAL_LM
 )
 
-# Quantization for CPU-friendly training
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_use_double_quant=True
-)
+# Optional quantization config
+bnb_config = None
+if args.cpu_friendly:
+    from transformers import BitsAndBytesConfig
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_use_double_quant=True
+    )
+    print("🧠 CPU-friendly 4-bit quantization enabled.")
+else:
+    print("🚀 Full precision (GPU-optimized) training.")
 
 # Load model and tokenizer
 model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
@@ -43,8 +76,8 @@ tokenizer.pad_token = tokenizer.eos_token
 
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    quantization_config=bnb_config,
-    device_map="auto"
+    device_map="auto",
+    quantization_config=bnb_config if bnb_config else None
 )
 model = prepare_model_for_kbit_training(model)
 model = get_peft_model(model, lora_config)
@@ -100,3 +133,15 @@ trainer = SFTTrainer(
 trainer.train()
 model.save_pretrained(output_dir)
 print(f"✅ LoRA adapter saved to: {output_dir}")
+
+# Archive adapter directory
+archive_path = shutil.make_archive(base_name=output_dir, format='gztar', root_dir=output_dir)
+print(f"📦 Archive created: {archive_path}")
+
+# Automatically delete archive if running on a Mac
+if is_mac:
+    try:
+        os.remove(archive_path)
+        print(f"🧹 Auto-deleted archive (Mac-only): {archive_path}")
+    except Exception as e:
+        print(f"⚠️ Could not delete archive: {e}")

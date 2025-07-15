@@ -11,15 +11,23 @@ __pycache__/
 
 # Local DB, logs, or backups
 *.sqlite3
-db/backup.sql
+db/backups/*.sql
+db/backups/*
+!db/backups/.gitkeep
 
 # IDE and editor settings
 .idea/
 .vscode/
 .DS_Store
 
-# 🟡 Output artifacts
+# Output artifacts
 /outputs/
 /outputs/*.pdf
 /outputs/*.csv
 /outputs/*.json
+
+# Training Data
+training_data/*
+
+# Models
+models/*

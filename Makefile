@@ -1,108 +1,80 @@
+# File: Makefile
 # ============================================
 # 🧪 GenAI Recipe Audit Benchmark – Makefile
 # ============================================
 
-# 🐘 PostgreSQL Container Lifecycle
+# 📐 Schema Versioning
+SCHEMA_VERSION ?= v1.4
 
-start-db:
-	docker-compose up -d
-
-wait-for-db:
-	@echo "Waiting for DB to become available..."
-	@until docker exec genai-recipe-audit-benchmark-db-1 pg_isready -U benchmark -d benchmarkdb; do sleep 1; done
-
-stop-db:
-	docker-compose down
-
-clean:
-	docker-compose down -v
-
-recreate-db: clean start-db wait-for-db reset-db
-
-bootstrap-db: recreate-db show-db-stats show-schema-docs
-
-# 🏗️ Schema + Seed Initialization
-
-setup-db:
-	docker exec -i genai-recipe-audit-benchmark-db-1 \
-	psql -U benchmark -d benchmarkdb < db/schema.sql
-
-load-llms:
-	docker exec -i genai-recipe-audit-benchmark-db-1 \
-	psql -U benchmark -d benchmarkdb < db/seeds/llms.sql
-
-load-deviation-types:
-	docker exec -i genai-recipe-audit-benchmark-db-1 \
-	psql -U benchmark -d benchmarkdb < db/seeds/deviation_types.sql
-
-reset-db: setup-db load-llms load-deviation-types
 
 # ▶️ Benchmark Execution
 
 run:
 	docker-compose run --remove-orphans cli python main.py
 
-# 🔍 Inspect DB Content
+# Starting SQL
+psql:
+	docker compose exec db psql -U benchmark -d benchmarkdb
 
-show-llms:
-	docker exec -it genai-recipe-audit-benchmark-db-1 \
-	psql -U benchmark -d benchmarkdb -c "SELECT id, name, provider, model FROM llms ORDER BY id;"
+# 🐘 PostgreSQL Container Lifecycle
 
-show-deviation-types:
-	docker exec -it genai-recipe-audit-benchmark-db-1 \
-	psql -U benchmark -d benchmarkdb -c "SELECT id, type, alcoa_principle, severity FROM deviation_types ORDER BY id;"
+backup-db: refresh-schema-docs save_to_file
+	@echo "♻️  Resetting DB and restoring schema..."
+	@$(MAKE) recreate_empty_db
+	@$(MAKE) import-db
+	@echo "✅ Backup, reset, and import completed."
+	@$(MAKE) show-stats
 
-show-deviations: show-deviation-types
+wait-for-db:
+	@echo "Waiting for DB to become available..."
+	@until docker exec genai-recipe-audit-benchmark-db-1 pg_isready -U benchmark -d benchmarkdb; do sleep 1; done
 
-show-db-stats:
-	docker exec -it genai-recipe-audit-benchmark-db-1 \
-	psql -U benchmark -d benchmarkdb -c "\
-	SELECT 'llms' AS table, COUNT(*) FROM llms UNION ALL \
-	SELECT 'deviation_types', COUNT(*) FROM deviation_types UNION ALL \
-	SELECT 'benchmark_runs', COUNT(*) FROM benchmark_runs UNION ALL \
-	SELECT 'sample_records', COUNT(*) FROM sample_records UNION ALL \
-	SELECT 'injected_deviations', COUNT(*) FROM injected_deviations UNION ALL \
-	SELECT 'record_eval_results', COUNT(*) FROM record_eval_results UNION ALL \
-	SELECT 'run_llm_results', COUNT(*) FROM run_llm_results UNION ALL \
-	SELECT 'training_examples', COUNT(*) FROM training_examples UNION ALL \
-	SELECT 'training_example_deviations', COUNT(*) FROM training_example_deviations;"
-
-show-schema-docs:
-	docker exec -it genai-recipe-audit-benchmark-db-1 psql -U benchmark -d benchmarkdb -c '\d+ llms'
-	docker exec -it genai-recipe-audit-benchmark-db-1 psql -U benchmark -d benchmarkdb -c '\d+ deviation_types'
-	docker exec -it genai-recipe-audit-benchmark-db-1 psql -U benchmark -d benchmarkdb -c '\d+ benchmark_runs'
-	docker exec -it genai-recipe-audit-benchmark-db-1 psql -U benchmark -d benchmarkdb -c '\d+ sample_records'
-	docker exec -it genai-recipe-audit-benchmark-db-1 psql -U benchmark -d benchmarkdb -c '\d+ injected_deviations'
-	docker exec -it genai-recipe-audit-benchmark-db-1 psql -U benchmark -d benchmarkdb -c '\d+ record_eval_results'
-	docker exec -it genai-recipe-audit-benchmark-db-1 psql -U benchmark -d benchmarkdb -c '\d+ run_llm_results'
-	docker exec -it genai-recipe-audit-benchmark-db-1 psql -U benchmark -d benchmarkdb -c '\d+ training_examples'
-	docker exec -it genai-recipe-audit-benchmark-db-1 psql -U benchmark -d benchmarkdb -c '\d+ training_example_deviations'
-	docker exec -it genai-recipe-audit-benchmark-db-1 psql -U benchmark -d benchmarkdb -c '\d+ schema_docs'
+recreate_empty_db:
+	@docker-compose down -v --remove-orphans > /dev/null 2>&1
+	@docker-compose up -d > /dev/null
+	@$(MAKE) wait-for-db
 
 # 💾 Backup / Restore Utilities
 
-backup-db:
+save_to_file: wait-for-db
+	@mkdir -p db/backups
+	@TIMESTAMP=$$(date "+%Y-%m-%d_%H-%M") && \
+	FILE="db/backups/$${TIMESTAMP}_benchmarkdb_$(SCHEMA_VERSION).sql.gz" && \
+	echo "📦 Saving backup: $${FILE}" && \
 	docker exec genai-recipe-audit-benchmark-db-1 \
-	pg_dump -U benchmark -d benchmarkdb > db/backup.sql
+	pg_dump -U benchmark -d benchmarkdb | gzip > "$$FILE" && \
+	echo "✅ Backup saved." && \
+	ls -1t db/backups/*.sql.gz | tail -n +21 | xargs rm -f --
 
 import-db:
-	docker cp db/backup.sql genai-recipe-audit-benchmark-db-1:/tmp/
-	docker exec -i genai-recipe-audit-benchmark-db-1 \
-	psql -U benchmark -d benchmarkdb < /tmp/backup.sql
+	@FILE=$$(ls -t db/backups/*.sql.gz | head -n 1); \
+	echo "📥 Importing backup into benchmarkdb from $$FILE" && \
+	gunzip -c "$$FILE" | docker exec -i genai-recipe-audit-benchmark-db-1 \
+	psql -q -U benchmark -d benchmarkdb > /dev/null
 
-# ============================================================================
-# ⚙️ One-time test seed for validating benchmark pipeline
-# ============================================================================
-load-baseline-chatgpt:
-	docker exec -i genai-recipe-audit-benchmark-db-1 \
-	psql -U benchmark -d benchmarkdb < db/seeds/baseline_chatgpt_seed.sql
+show-stats:
+	docker exec -it genai-recipe-audit-benchmark-db-1 \
+	psql -U benchmark -d benchmarkdb -c "\
+	SELECT relname AS table, n_live_tup AS estimated_rows \
+	FROM pg_stat_user_tables ORDER BY relname;"
+
+
+refresh-schema-docs:
+	@echo "📚 Updating db/schema.sql based on actual DB schema"
+	docker exec genai-recipe-audit-benchmark-db-1 \
+	pg_dump -U benchmark -d benchmarkdb --schema-only --clean > db/schema.sql
+	@echo "📚 Updating schema_docs with any missing fields..."
+	docker compose exec -e PGPASSWORD=benchmark cli \
+	psql -U benchmark -h db -d benchmarkdb -f db/refresh_schema_docs.sql
+	@echo "✅ Schema and docs are now in sync."
+
 
 # 🤖 Training Data Generation
 
 generate-training-examples:
 	docker compose exec cli python scripts/generate_training_examples.py
 
-check-training-data: check-training-examples check-training-example-deviations
+check-training-data: check-training-examples check-training-example-deviations check-training-llm-sources
 
 check-training-examples:
 	docker compose exec db \
@@ -115,12 +87,16 @@ check-training-example-deviations:
 	FROM training_example_deviations \
 	ORDER BY training_example_id DESC LIMIT 20;"
 
+check-training-llm-sources:
+	docker compose exec db \
+	psql -U benchmark -d benchmarkdb -c "\
+	SELECT id, source_llm FROM training_examples ORDER BY id DESC LIMIT 10;"
+
 # ============================================
 # 📛 .PHONY: Explicitly mark all targets as non-file-based
 # ============================================
-.PHONY: start-db wait-for-db stop-db clean recreate-db bootstrap-db \
-        setup-db load-llms load-deviation-types reset-db \
-        run show-llms show-deviation-types show-deviations show-db-stats show-schema-docs \
-        backup-db import-db \
-        load-baseline-chatgpt generate-training-examples \
-        check-training-examples check-training-example-deviations
+
+.PHONY: wait-for-db recreate_empty_db backup-db \
+        setup-db run show-db-stats \
+        save_to_file import-db restore-into-new-db generate-training-examples \
+        check-training-examples check-training-example-deviations check-training-llm-sources

@@ -10,3 +10,7 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 COPY . .
 
 ENV PYTHONPATH="${PYTHONPATH}:/app/src"
+
+CMD ["bash"]
+
+RUN apt-get update && apt-get install -y postgresql-client

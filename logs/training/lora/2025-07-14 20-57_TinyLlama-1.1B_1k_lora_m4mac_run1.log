@@ -1,0 +1,49 @@
+logs/training/lora/2025-07-14 20-57_TinyLlama-1.1B_1k_lora_m4mac_run1.log"
+# TinyLlama-1.1B LoRA Training Log
+# Samples: 1,000
+# Tokens: 1,536,000
+# Epochs: 3
+# Hardware: MacBook Pro M4 Max (128 GB)
+# Date: 2025-07-14 20:57
+
+igorrazumny@MacBook-Pro genai-recipe-audit-benchmark % docker compose run --rm cli python scripts/train_lora/train_tinyllama_lora.py
+WARN[0000] /Users/igorrazumny/PycharmProjects/genai-recipe-audit-benchmark/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+WARN[0000] Found orphan containers ([genai-recipe-audit-benchmark-cli-run-2cf218b5ed23 genai-recipe-audit-benchmark-cli-run-62476b7f576c genai-recipe-audit-benchmark-cli-run-f6abd5c8fe43 genai-recipe-audit-benchmark-cli-run-feb5fd3674df]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up. 
+🚀 Starting TinyLlama LoRA training...
+The installed version of bitsandbytes was compiled without GPU support. 8-bit optimizers and GPU quantization are unavailable.
+Truncating train dataset: 100%|█████████████████████████████████████████████████████████████████████████████████████| 1000/1000 [00:00<00:00, 414334.09 examples/s]
+No label_names provided for model class `PeftModelForCausalLM`. Since `PeftModel` hides base models input arguments, if label_names is not given, label_names can't be set automatically within `Trainer`. Note that empty label_names list will be used instead.
+  0%|                                                                                                                                      | 0/189 [00:00<?, ?it/s]/usr/local/lib/python3.11/site-packages/torch/utils/data/dataloader.py:665: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  warnings.warn(warn_msg)
+`use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+/usr/local/lib/python3.11/site-packages/torch/_dynamo/eval_frame.py:838: UserWarning: torch.utils.checkpoint: the use_reentrant parameter should be passed explicitly. In version 2.5 we will raise an exception if use_reentrant is not passed. use_reentrant=False is recommended, but if you need to preserve the current default behavior, you can pass use_reentrant=True. Refer to docs for more details on the differences between the two variants.
+  return fn(*args, **kwargs)
+{'loss': 2.5229, 'grad_norm': 1.7235318422317505, 'learning_rate': 0.00019047619047619048, 'num_tokens': 81920.0, 'mean_token_accuracy': 0.5077441379427909, 'epoch': 0.16}
+{'loss': 1.7591, 'grad_norm': 3.1975162029266357, 'learning_rate': 0.0001798941798941799, 'num_tokens': 163840.0, 'mean_token_accuracy': 0.6148219674825668, 'epoch': 0.32}
+{'loss': 0.9666, 'grad_norm': 2.329057216644287, 'learning_rate': 0.00016931216931216931, 'num_tokens': 245760.0, 'mean_token_accuracy': 0.7851760014891624, 'epoch': 0.48}
+{'loss': 0.442, 'grad_norm': 1.9155410528182983, 'learning_rate': 0.00015873015873015873, 'num_tokens': 327680.0, 'mean_token_accuracy': 0.8807360157370567, 'epoch': 0.64}
+{'loss': 0.2922, 'grad_norm': 1.0412092208862305, 'learning_rate': 0.00014814814814814815, 'num_tokens': 409600.0, 'mean_token_accuracy': 0.9061750486493111, 'epoch': 0.8}
+{'loss': 0.2764, 'grad_norm': 0.5337179899215698, 'learning_rate': 0.00013756613756613756, 'num_tokens': 491520.0, 'mean_token_accuracy': 0.9070621967315674, 'epoch': 0.96}
+ 33%|████████████████████████████████████████▎                                                                                | 63/189 [1:38:41<2:50:04, 80.99s/it]/usr/local/lib/python3.11/site-packages/torch/utils/data/dataloader.py:665: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  warnings.warn(warn_msg)
+/usr/local/lib/python3.11/site-packages/torch/_dynamo/eval_frame.py:838: UserWarning: torch.utils.checkpoint: the use_reentrant parameter should be passed explicitly. In version 2.5 we will raise an exception if use_reentrant is not passed. use_reentrant=False is recommended, but if you need to preserve the current default behavior, you can pass use_reentrant=True. Refer to docs for more details on the differences between the two variants.
+  return fn(*args, **kwargs)
+{'loss': 0.2671, 'grad_norm': 0.7147498726844788, 'learning_rate': 0.00012698412698412698, 'num_tokens': 569344.0, 'mean_token_accuracy': 0.9071661908375589, 'epoch': 1.11}
+{'loss': 0.2564, 'grad_norm': 0.5295459628105164, 'learning_rate': 0.0001164021164021164, 'num_tokens': 651264.0, 'mean_token_accuracy': 0.9077086269855499, 'epoch': 1.27}
+{'loss': 0.2451, 'grad_norm': 0.6654343008995056, 'learning_rate': 0.00010582010582010582, 'num_tokens': 733184.0, 'mean_token_accuracy': 0.906674624979496, 'epoch': 1.43}
+{'loss': 0.2286, 'grad_norm': 0.5441281199455261, 'learning_rate': 9.523809523809524e-05, 'num_tokens': 815104.0, 'mean_token_accuracy': 0.9125083193182946, 'epoch': 1.59}
+{'loss': 0.2071, 'grad_norm': 0.5493448972702026, 'learning_rate': 8.465608465608466e-05, 'num_tokens': 897024.0, 'mean_token_accuracy': 0.9170650213956832, 'epoch': 1.75}
+{'loss': 0.1974, 'grad_norm': 0.2966490387916565, 'learning_rate': 7.407407407407407e-05, 'num_tokens': 978944.0, 'mean_token_accuracy': 0.9163525775074959, 'epoch': 1.91}
+ 67%|████████████████████████████████████████████████████████████████████████████████                                        | 126/189 [3:19:33<1:25:32, 81.47s/it]/usr/local/lib/python3.11/site-packages/torch/utils/data/dataloader.py:665: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  warnings.warn(warn_msg)
+/usr/local/lib/python3.11/site-packages/torch/_dynamo/eval_frame.py:838: UserWarning: torch.utils.checkpoint: the use_reentrant parameter should be passed explicitly. In version 2.5 we will raise an exception if use_reentrant is not passed. use_reentrant=False is recommended, but if you need to preserve the current default behavior, you can pass use_reentrant=True. Refer to docs for more details on the differences between the two variants.
+  return fn(*args, **kwargs)
+{'loss': 0.1969, 'grad_norm': 0.27427440881729126, 'learning_rate': 6.349206349206349e-05, 'num_tokens': 1056768.0, 'mean_token_accuracy': 0.9164169854239413, 'epoch': 2.06}
+{'loss': 0.1949, 'grad_norm': 0.3791140615940094, 'learning_rate': 5.291005291005291e-05, 'num_tokens': 1138688.0, 'mean_token_accuracy': 0.9174378931522369, 'epoch': 2.22}
+{'loss': 0.1946, 'grad_norm': 0.370438814163208, 'learning_rate': 4.232804232804233e-05, 'num_tokens': 1220608.0, 'mean_token_accuracy': 0.9188856840133667, 'epoch': 2.38}
+{'loss': 0.194, 'grad_norm': 0.43758806586265564, 'learning_rate': 3.1746031746031745e-05, 'num_tokens': 1302528.0, 'mean_token_accuracy': 0.9168465003371239, 'epoch': 2.54}
+{'loss': 0.1941, 'grad_norm': 0.3215636610984802, 'learning_rate': 2.1164021164021164e-05, 'num_tokens': 1384448.0, 'mean_token_accuracy': 0.917699110507965, 'epoch': 2.7}
+{'loss': 0.1934, 'grad_norm': 0.3812500536441803, 'learning_rate': 1.0582010582010582e-05, 'num_tokens': 1466368.0, 'mean_token_accuracy': 0.917886309325695, 'epoch': 2.86}
+{'train_runtime': 18009.301, 'train_samples_per_second': 0.167, 'train_steps_per_second': 0.01, 'train_loss': 0.47636863352760433, 'num_tokens': 1536000.0, 'mean_token_accuracy': 0.9162657085586997, 'epoch': 3.0}
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 189/189 [5:00:09<00:00, 95.29s/it]
+✅ LoRA adapter saved to: models/lora_adapters/tinyllama-alcoa-2025-07-14_20-57

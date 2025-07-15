@@ -60,13 +60,13 @@ docker exec -i genai-recipe-audit-benchmark-db-1 \
 ### ▶️ Load LLMs (alternative to `make load-llms`)
 ```bash
 docker exec -i genai-recipe-audit-benchmark-db-1 \
-  psql -U benchmark -d benchmarkdb < db/seeds/llms.sql
+  psql -U benchmark -d benchmarkdb < db/seeds/2025-07-15_llms.sql
 ```
 
 ### ▶️ Load Deviation Types (alternative to `make load-deviation-types`)
 ```bash
 docker exec -i genai-recipe-audit-benchmark-db-1 \
-  psql -U benchmark -d benchmarkdb < db/seeds/deviation_types.sql
+  psql -U benchmark -d benchmarkdb < db/seeds/2025-07-15_deviation_types.sql
 ```
 
 ### 🧪 Query a Table (e.g., LLMs)
@@ -119,5 +119,5 @@ python main.py run --llms all --samples 100
 
 - [`README.md`](../README.md) – project overview  
 - [`db/schema.sql`](../db/schema.sql) – database structure  
-- [`db/seeds/llms.sql`](../db/seeds/llms.sql) – seed model list  
-- [`db/seeds/deviation_types.sql`](../db/seeds/deviation_types.sql) – ALCOA+ deviation types
+- [`db/seeds/llms.sql`](../db/backups/2025-07-15_llms.sql) – seed model list  
+- [`db/seeds/deviation_types.sql`](../db/backups/2025-07-15_deviation_types.sql) – ALCOA+ deviation types
