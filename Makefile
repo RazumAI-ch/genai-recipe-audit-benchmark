@@ -47,7 +47,7 @@ save_to_file: wait-for-db
 	ls -1t db/backups/*.sql.gz | tail -n +21 | xargs rm -f --
 
 import-db:
-	@FILE=$$(ls -t db/backups/*.sql.gz | head -n 1); \
+	@FILE="archive/db-backup-latest.zip"; \
 	echo "📥 Importing backup into benchmarkdb from $$FILE" && \
 	gunzip -c "$$FILE" | docker exec -i genai-recipe-audit-benchmark-db-1 \
 	psql -q -U benchmark -d benchmarkdb > /dev/null
