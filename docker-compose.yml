@@ -17,7 +17,7 @@ services:
       dockerfile: Dockerfile.cli
     volumes:
       - .:/app
-      - hf_cache:/root/.cache/huggingface  # ✅ persistent HF model cache
+      - ~/.cache/huggingface:/root/.cache/huggingface
     working_dir: /app
     stdin_open: true
     tty: true
@@ -26,4 +26,3 @@ services:
 
 volumes:
   pgdata:
-  hf_cache:

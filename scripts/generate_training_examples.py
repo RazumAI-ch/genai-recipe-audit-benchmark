@@ -89,7 +89,7 @@ def main():
         training_example_id = cur.fetchone()[0]
 
         # 3. Insert linked deviation
-        explanation = fake_explanation(deviation_id, i)
+        explanation = None
         source_field = infer_source_field(deviation_id)
 
         cur.execute("""

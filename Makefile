@@ -64,13 +64,39 @@ refresh-schema-docs:
 	docker exec genai-recipe-audit-benchmark-db-1 \
 	pg_dump -U benchmark -d benchmarkdb --schema-only --clean > db/schema.sql
 	@echo "📚 Updating schema_docs with any missing fields..."
-	docker compose exec -e PGPASSWORD=benchmark cli \
+	docker compose run --rm -e PGPASSWORD=benchmark cli \
 	psql -U benchmark -h db -d benchmarkdb -f db/refresh_schema_docs.sql
 	@echo "✅ Schema and docs are now in sync."
 
 
-# 🤖 Training Data Generation
 
+# Training
+
+docker-stats:
+	docker stats
+
+train-lora-tinyllama: wait-for-db
+	docker run -it --rm \
+	  --memory=117g \
+	  --network genai-recipe-audit-benchmark_default \
+	  -v $(PWD):/app \
+	  -v ~/.cache/huggingface:/root/.cache/huggingface \
+	  -w /app \
+	  genai-recipe-audit-benchmark-cli \
+	  python scripts/train_lora/TinyLlamaLoRATrainer.py
+
+tail-lora-log:
+	@echo "⏳ Waiting for logs/training/lora/latest.log to appear..."
+	@while [ ! -f logs/training/lora/latest.log ]; do sleep 1; done
+	@echo "📄 Log found — now tailing:"
+	@echo
+	@tail -f logs/training/lora/latest.log
+
+track-lora-progress:
+	python3 scripts/utils/track_lora_progress.py
+
+
+# 🤖 Training Data Generation
 generate-training-examples:
 	docker compose exec cli python scripts/generate_training_examples.py
 

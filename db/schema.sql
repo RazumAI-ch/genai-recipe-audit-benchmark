@@ -414,7 +414,9 @@ CREATE TABLE public.training_runs (
     log_path text,
     model_output_path text,
     notes text,
-    created_at timestamp without time zone DEFAULT now()
+    created_at timestamp without time zone DEFAULT now(),
+    cost_usd double precision,
+    gpu_cost_per_hour double precision
 );
 
 
