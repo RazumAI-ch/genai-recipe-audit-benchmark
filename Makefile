@@ -18,7 +18,7 @@ psql:
 
 # 🐘 PostgreSQL Container Lifecycle
 
-backup-db: refresh-schema-docs save_to_file
+backup-db: refresh-schema-docs save_to_file copy-latest-db-to-archive archive-latest-logs
 	@echo "♻️  Resetting DB and restoring schema..."
 	@$(MAKE) recreate_empty_db
 	@$(MAKE) import-db
@@ -68,6 +68,21 @@ refresh-schema-docs:
 	psql -U benchmark -h db -d benchmarkdb -f db/refresh_schema_docs.sql
 	@echo "✅ Schema and docs are now in sync."
 
+# Archiving of db and logs
+
+# Copy latest DB backup into archive/ with static filename
+copy-latest-db-to-archive:
+	@echo "📦 Copying latest DB backup to archive/db-backup-latest.zip"
+	@mkdir -p archive
+	@LATEST=$$(ls -t db/backups/*.sql.gz | head -n 1) && \
+	cp "$$LATEST" archive/db-backup-latest.zip && \
+	echo "✅ Copied: $$LATEST → archive/db-backup-latest.zip"
+
+archive-latest-logs:
+	@echo "📦 Archiving latest logs to archive/logs-latest.zip"
+	@mkdir -p archive
+	@zip -j archive/logs-latest.zip logs/training/lora/* || echo "No logs to archive"
+	@echo "✅ Logs archived to archive/logs-latest.zip"
 
 
 # Training
@@ -122,7 +137,7 @@ check-training-llm-sources:
 # 📛 .PHONY: Explicitly mark all targets as non-file-based
 # ============================================
 
-.PHONY: wait-for-db recreate_empty_db backup-db \
+.PHONY: wait-for-db recreate_empty_db backup-db archive-latest-logs \
         setup-db run show-db-stats \
         save_to_file import-db restore-into-new-db generate-training-examples \
         check-training-examples check-training-example-deviations check-training-llm-sources

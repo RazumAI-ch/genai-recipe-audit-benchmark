@@ -31,3 +31,8 @@ training_data/*
 
 # Models
 models/*
+
+# Logs
+# Logs and archives
+logs/*
+!logs/.gitkeep
