@@ -4,6 +4,11 @@ A production-grade benchmark to evaluate how well Generative AI models (e.g. GPT
 
 Designed for GxP environments, the benchmark scores models based on their ability to identify deviations — starting with ALCOA+ (GxP1) and extending into real-world logic and execution trace evaluation (GxP2 & GxP3, commercial only).
 
+We evaluate a **diverse mix of models**, including:
+- Proprietary closed-source LLMs (e.g., OpenAI GPT-4o, Gemini, Claude)
+- Open-source foundation models (e.g., Mistral, LLaMA)
+- **Our own LoRA-trained variants** fine-tuned on structured GxP data
+
 ---
 
 ## 📊 GxP Scoring
@@ -21,7 +26,8 @@ GxP1 detects timestamp issues, missing operators, overwritten fields, etc., with
 ## 🔧 Capabilities
 
 - Generate structured samples with injected deviations  
-- Evaluate across OpenAI, Claude, Gemini, Mistral, etc.
+- Evaluate across OpenAI, Claude, Gemini, Mistral, etc.  
+- Benchmark open models — including our own **LoRA-trained fine-tunes**  
 - Compare quality, speed, and price across LLMs  
 - Fully reproducible via Docker + PostgreSQL + Makefile  
 
