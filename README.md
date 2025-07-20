@@ -1,9 +1,6 @@
 # 🧪 GenAI Recipe Audit Benchmark
 
-A benchmark to evaluate how well Generative AI models are able to identify and classify ALCOA+ deviations. A **diverse mix of models** are evaluated including:
-- Proprietary closed-source LLMs (e.g., OpenAI GPT-4o, Gemini, Claude)
-- Open-source foundation models (e.g., Mistral, LLaMA)
-- **Our own LoRA-trained variants** fine-tuned on structured GxP data
+Benchmarking GenAI Models for GxP Pharmaceutical Recipe Auditing: Proprietary, Open-Source, and Custom-Trained (LoRA & Full) LLMs
 
 ---
 
