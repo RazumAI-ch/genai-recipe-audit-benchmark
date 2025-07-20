@@ -1,8 +1,6 @@
 # 🧪 GenAI Recipe Audit Benchmark
 
-A benchmark to evaluate how well Generative AI models (e.g. GPT-4o, Claude, Gemini, Mistral, LLaMA, etc.) are able to identify and classify ALCOA+ deviations.
-
-A **diverse mix of models** are evaluated including:
+A benchmark to evaluate how well Generative AI models are able to identify and classify ALCOA+ deviations. A **diverse mix of models** are evaluated including:
 - Proprietary closed-source LLMs (e.g., OpenAI GPT-4o, Gemini, Claude)
 - Open-source foundation models (e.g., Mistral, LLaMA)
 - **Our own LoRA-trained variants** fine-tuned on structured GxP data
