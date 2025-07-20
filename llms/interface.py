@@ -29,7 +29,7 @@ class LLMInterface(ABC):
         pass
 
     @abstractmethod
-    def evaluate_batch(self, records: List[Dict], context_prefix: str = "") -> List[Dict]:
+    def evaluate(self, records: List[Dict], context_prefix: str = "") -> List[Dict]:
         """
         Evaluate a batch of records and return list of results per record.
 

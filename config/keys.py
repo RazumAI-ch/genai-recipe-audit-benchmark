@@ -7,7 +7,7 @@ API_KEY_ENV = "api_key_env"
 MODEL = "model"
 BATCH_SIZE = "batch_size"
 SYSTEM_PROMPT = "system_prompt"
-USER_PROMPT_PREFIX = "user_prompt_prefix"
+USER_PROMPT = "user_prompt"
 
 # ============================
 # 🤖 OpenAI Models

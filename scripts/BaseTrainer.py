@@ -12,9 +12,14 @@ class BaseTrainer:
         raw_hw = input("💻 Use GPU (press Enter) or run on Mac M4 Max (type 'm')? ").strip().lower()
         self.is_mac_m4 = raw_hw == "m"
         self.hardware = "MacBook Pro M4 Max (128 GB)" if self.is_mac_m4 else self.detect_hardware()
-        self.conn = self.connect_to_db()
-        self.cur = self.conn.cursor()
-        self.total_records = self.fetch_total_record_count()
+        self.db_active = False  # default to False until tested
+        self.conn = None
+        self.cur = None
+        self.try_connect_to_db()
+        if self.db_active:
+            self.total_records = self.fetch_total_record_count()
+        else:
+            self.total_records = 0
         self.record_limit = self.prompt_record_limit()
         self.start_time = datetime.now()
         self.timestamp = self.start_time.strftime('%Y-%m-%d_%H-%M')
@@ -22,28 +27,43 @@ class BaseTrainer:
         self.log_path = f"logs/training/lora/{self.timestamp}_train.log"
         self.symlink_latest_log()
 
-    def connect_to_db(self):
-        return psycopg2.connect(
-            host=os.getenv("DB_HOST", "db"),
-            dbname=os.getenv("DB_NAME", "benchmarkdb"),
-            user=os.getenv("DB_USER", "benchmark"),
-            password=os.getenv("DB_PASSWORD", "benchmark"),
-            port=os.getenv("DB_PORT", "5432")
-        )
+    def try_connect_to_db(self):
+        try:
+            self.conn = psycopg2.connect(
+                host=os.getenv("DB_HOST", "db"),
+                dbname=os.getenv("DB_NAME", "benchmarkdb"),
+                user=os.getenv("DB_USER", "benchmark"),
+                password=os.getenv("DB_PASSWORD", "benchmark"),
+                port=os.getenv("DB_PORT", "5432")
+            )
+            self.cur = self.conn.cursor()
+            self.cur.execute("SELECT 1")
+            self.db_active = True
+            print("✅ Database connection verified.")
+        except Exception as e:
+            print("⚠️ Could not connect to DB. Training will proceed without DB logging.")
+            print(str(e))
+            self.db_active = False
 
     def fetch_total_record_count(self):
         self.cur.execute("SELECT COUNT(*) FROM training_examples;")
         return self.cur.fetchone()[0]
 
     def prompt_record_limit(self):
-        print(f"📊 Total training examples available in DB: {self.total_records}")
+        if self.db_active:
+            print(f"📊 Total training examples available in DB: {self.total_records}")
+        else:
+            print("📊 DB is offline — training will load 0 records unless overridden manually.")
         raw = input("🔢 How many examples do you want to load? (press Enter to load all): ").strip()
         try:
             if raw == "" or raw == "-1":
-                print("📅 Loading all available records.")
-                return None
+                if self.db_active:
+                    print("📅 Loading all available records.")
+                    return None
+                else:
+                    raise RuntimeError("❌ Cannot load all records — DB is unavailable.")
             val = int(raw)
-            if val <= 0 or val > self.total_records:
+            if val <= 0 or (self.db_active and val > self.total_records):
                 raise ValueError
             print(f"📅 Loading {val} randomly selected records.")
             return val
@@ -90,17 +110,27 @@ class BaseTrainer:
             print(f"⚠️ Could not create latest.log symlink: {e}")
 
     def log_training_run(self, metadata):
-        self.cur.execute("""
-            INSERT INTO training_runs (
-                model_name, method, dataset_description, total_samples, total_tokens, epochs,
-                hardware, start_time, duration_seconds, final_loss, final_accuracy,
-                log_path, model_output_path, notes, cost_usd, gpu_cost_per_hour
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id;
-        """, metadata)
-        training_run_id = self.cur.fetchone()[0]
-        self.conn.commit()
-        print(f"🗃️  Training run recorded in DB (ID = {training_run_id})")
+        if not self.db_active:
+            print("⚠️ DB logging skipped: no active connection.")
+            return
+        try:
+            self.cur.execute("""
+                INSERT INTO training_runs (
+                    model_name, method, dataset_description, total_samples, total_tokens, epochs,
+                    hardware, start_time, duration_seconds, final_loss, final_accuracy,
+                    log_path, model_output_path, notes, cost_usd, gpu_cost_per_hour
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id;
+            """, metadata)
+            training_run_id = self.cur.fetchone()[0]
+            self.conn.commit()
+            print(f"🗃️  Training run recorded in DB (ID = {training_run_id})")
+        except psycopg2.OperationalError as e:
+            print("❌ DB connection lost while logging training run.")
+            print(str(e))
+        except Exception as e:
+            print("❌ Unexpected error while logging training run:")
+            print(str(e))
 
     def run(self):
         raise NotImplementedError("Subclasses must implement the run() method.")

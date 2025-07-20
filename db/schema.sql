@@ -28,7 +28,7 @@ ALTER TABLE ONLY public.record_eval_results DROP CONSTRAINT record_eval_results_
 ALTER TABLE ONLY public.record_eval_results DROP CONSTRAINT record_eval_results_llm_id_fkey;
 ALTER TABLE ONLY public.injected_deviations DROP CONSTRAINT injected_deviations_sample_record_id_fkey;
 ALTER TABLE ONLY public.injected_deviations DROP CONSTRAINT injected_deviations_deviation_type_id_fkey;
-ALTER TABLE ONLY public.training_runs DROP CONSTRAINT training_runs_pkey;
+ALTER TABLE ONLY public.training_runs DROP CONSTRAINT training_runs_pkey1;
 ALTER TABLE ONLY public.training_examples DROP CONSTRAINT training_examples_pkey;
 ALTER TABLE ONLY public.training_example_deviations DROP CONSTRAINT training_example_deviations_pkey;
 ALTER TABLE ONLY public.schema_docs DROP CONSTRAINT schema_docs_pkey;
@@ -409,6 +409,7 @@ CREATE TABLE public.training_runs (
     hardware text,
     start_time timestamp without time zone,
     duration_seconds integer,
+    duration_hours double precision GENERATED ALWAYS AS (round(((duration_seconds)::numeric / 3600.0), 1)) STORED,
     final_loss double precision,
     final_accuracy double precision,
     log_path text,
@@ -416,7 +417,7 @@ CREATE TABLE public.training_runs (
     notes text,
     created_at timestamp without time zone DEFAULT now(),
     cost_usd double precision,
-    gpu_cost_per_hour double precision
+    cost_per_hour double precision
 );
 
 
@@ -560,11 +561,11 @@ ALTER TABLE ONLY public.training_examples
 
 
 --
--- Name: training_runs training_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: benchmark
+-- Name: training_runs training_runs_pkey1; Type: CONSTRAINT; Schema: public; Owner: benchmark
 --
 
 ALTER TABLE ONLY public.training_runs
-    ADD CONSTRAINT training_runs_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT training_runs_pkey1 PRIMARY KEY (id);
 
 
 --

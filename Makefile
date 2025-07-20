@@ -7,9 +7,11 @@
 SCHEMA_VERSION ?= v1.4
 
 
+
 # ▶️ Benchmark Execution
 
-run:
+run: clear
+	@echo "make run"
 	docker-compose run --remove-orphans cli python main.py
 
 # Starting SQL
@@ -18,7 +20,7 @@ psql:
 
 # 🐘 PostgreSQL Container Lifecycle
 
-backup-db: refresh-schema-docs save_to_file copy-latest-db-to-archive archive-latest-logs
+backup-db: clear refresh-schema-docs save_to_file copy-latest-db-to-archive archive-latest-logs
 	@echo "♻️  Resetting DB and restoring schema..."
 	@$(MAKE) recreate_empty_db
 	@$(MAKE) import-db
@@ -65,7 +67,7 @@ refresh-schema-docs:
 	pg_dump -U benchmark -d benchmarkdb --schema-only --clean > db/schema.sql
 	@echo "📚 Updating schema_docs with any missing fields..."
 	docker compose run --rm -e PGPASSWORD=benchmark cli \
-	psql -U benchmark -h db -d benchmarkdb -f db/refresh_schema_docs.sql
+	psql -U benchmark -h db -d benchmarkdb --pset pager=off -f db/refresh_schema_docs.sql
 	@echo "✅ Schema and docs are now in sync."
 
 # Archiving of db and logs
@@ -92,6 +94,7 @@ docker-stats:
 
 train-lora-tinyllama: wait-for-db
 	docker run -it --rm \
+	  --name lora-trainer \
 	  --memory=117g \
 	  --network genai-recipe-audit-benchmark_default \
 	  -v $(PWD):/app \
@@ -132,6 +135,13 @@ check-training-llm-sources:
 	docker compose exec db \
 	psql -U benchmark -d benchmarkdb -c "\
 	SELECT id, source_llm FROM training_examples ORDER BY id DESC LIMIT 10;"
+
+
+# Utils
+
+clear:
+	@printf "\033c"
+
 
 # ============================================
 # 📛 .PHONY: Explicitly mark all targets as non-file-based

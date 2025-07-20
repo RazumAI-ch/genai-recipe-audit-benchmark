@@ -1,5 +1,14 @@
 -- File: db/refresh_schema_docs.sql
--- Purpose: Insert missing table/column docs into schema_docs
+-- Purpose: Ensure all columns in the public schema are documented in schema_docs.
+--
+-- This script is automatically run via the Makefile every time the database
+-- is restored from backup and the schema is extracted.
+--
+-- It inserts entries for any new columns missing from schema_docs,
+-- using default descriptions or placeholders.
+--
+-- At the end, it outputs a list of columns still missing descriptions,
+-- so they can be manually completed as needed.
 
 INSERT INTO schema_docs (table_name, column_name, description)
 SELECT

@@ -2,9 +2,11 @@
 
 from scripts.BaseTrainer import BaseTrainer
 import os
+import sys
 import torch
 import shutil
 from datetime import datetime, timedelta
+from pathlib import Path
 from datasets import Dataset
 from transformers import (
     AutoTokenizer,
@@ -24,6 +26,7 @@ from transformers.trainer_utils import get_last_checkpoint
 import transformers.trainer
 transformers.trainer.logger.setLevel("INFO")
 
+
 class TinyLlamaLoRATrainer(BaseTrainer):
     def __init__(self):
         torch.set_num_threads(os.cpu_count())
@@ -38,6 +41,22 @@ class TinyLlamaLoRATrainer(BaseTrainer):
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
         self.output_dir = f"models/lora_adapters/tinyllama-alcoa-{timestamp}"
+        self.log_path = f"logs/training/lora/{timestamp}_TinyLlama-1.1B_{self.record_limit or 'all'}_lora_m4mac_run1.log"
+        print(f"📝 Logging to {self.log_path}")
+        log_fh = open(self.log_path, "w")
+        sys.stdout = sys.stderr = log_fh
+
+        # Create or update symlink to latest log
+        latest_link = Path("logs/training/lora/latest.log")
+        latest_link.unlink(missing_ok=True)
+        latest_link.symlink_to(Path(self.log_path).name)
+
+        print("📋 Training Configuration:")
+        print(f"  Model: {self.model_name}")
+        print(f"  Samples: {len(self.dataset)}")
+        print(f"  Output Dir: {self.output_dir}")
+        print(f"  Log File: {self.log_path}")
+        print(f"  Platform: macOS | Hardware: {self.hardware} | Full Power Mode: {'Yes' if self.is_mac_m4 else 'No'}")
 
     def load_training_examples_from_db(self):
         cur = self.conn.cursor()
@@ -131,6 +150,10 @@ class TinyLlamaLoRATrainer(BaseTrainer):
         )
 
         resume_path = get_last_checkpoint(self.output_dir)
+
+        start_time = datetime.now()
+        print(f"🔵 Training started at {start_time}")
+
         if resume_path:
             print(f"🔁 Resuming training from checkpoint: {resume_path}")
             train_output = trainer.train(resume_from_checkpoint=resume_path)
@@ -138,8 +161,8 @@ class TinyLlamaLoRATrainer(BaseTrainer):
             print("🚀 Starting new training run")
             train_output = trainer.train()
 
-        start_time = datetime.now()
         end_time = datetime.now()
+        print(f"✅ Training finished at {end_time}")
 
         train_loss = train_output.metrics.get("train_loss")
         token_accuracy = train_output.metrics.get("mean_token_accuracy")
@@ -169,6 +192,9 @@ class TinyLlamaLoRATrainer(BaseTrainer):
             remaining_time = timedelta(seconds=int(avg_epoch_time * 2))
             log_file.write(f"🕒 Estimated time remaining if same pace: {remaining_time}\n")
 
+        if os.path.getsize(self.log_path) < 100:
+            print(f"🚨 Warning: Log file {self.log_path} is suspiciously small — training may have failed.")
+
         self.log_training_run((
             "TinyLlama-1.1B",
             "lora",
@@ -187,6 +213,7 @@ class TinyLlamaLoRATrainer(BaseTrainer):
             estimated_cost,
             0.00
         ))
+
 
 if __name__ == "__main__":
     trainer = TinyLlamaLoRATrainer()

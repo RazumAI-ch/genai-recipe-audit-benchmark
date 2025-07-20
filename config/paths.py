@@ -1,8 +1,8 @@
 # File: config/paths.py
 
 # Prompt configuration
-PROMPT_CONFIG_PATH = "config/prompts.yaml"
+PATH_CONFIG_PROMPT = "config/prompts.yaml"
+PATH_LOGS_DEBUG = "logs/debug"
 
 # LLM model configurations
-OPENAI_CONFIG_PATH = "config/openai.yaml"
-CLAUDE_CONFIG_PATH = "config/claude.yaml"
+PATH_CONFIG_OPENAI = "config/openai.yaml"

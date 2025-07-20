@@ -3,8 +3,8 @@
 from abc import ABC
 from typing import Dict, Any
 from llms.interface import LLMInterface
-from config.keys import SYSTEM_PROMPT, USER_PROMPT_PREFIX, MODEL, BATCH_SIZE
-from config.paths import PROMPT_CONFIG_PATH
+from config.keys import SYSTEM_PROMPT, USER_PROMPT, MODEL, BATCH_SIZE
+from config.paths import PATH_CONFIG_PROMPT
 import yaml
 import json
 
@@ -37,7 +37,7 @@ class BaseLLM(LLMInterface, ABC):
         """
         self.prompt_config = self._load_prompt_config()
         self.system_prompt = self.prompt_config.get(SYSTEM_PROMPT, "")
-        self.user_prompt_prefix = self.prompt_config.get(USER_PROMPT_PREFIX, "")
+        self.user_prompt_prefix = self.prompt_config.get(USER_PROMPT, "")
 
         # Merge in runtime overrides
         if overrides:
@@ -47,7 +47,7 @@ class BaseLLM(LLMInterface, ABC):
         self.model = self.model_config[MODEL]
         self.batch_size = self.model_config[BATCH_SIZE]
 
-    def _load_prompt_config(self, path: str = PROMPT_CONFIG_PATH) -> dict:
+    def _load_prompt_config(self, path: str = PATH_CONFIG_PROMPT) -> dict:
         """
         Load system and user prompts from the YAML config file.
         Used to provide consistent prompting across models.
@@ -68,11 +68,15 @@ class BaseLLM(LLMInterface, ABC):
         """
         Construct the full user prompt.
 
-        - If context_prefix is provided (e.g., deviation catalog), it is prepended.
-        - Accepts either a single record (dict) or list of records.
-        """
-        context = context_prefix.strip()
-        record_json = json.dumps(record, indent=2)
-        base_prompt = f"{self.user_prompt_prefix}\n{record_json}"
-        return f"{context}\n\n{base_prompt}" if context else base_prompt
+        - Accepts a list of records (preferred usage).
+        - Matches the format used by the Streamlit validator:
+            <user_prompt_prefix>
 
+            Recipe data:
+            <pretty-printed, sorted JSON>
+        """
+        return (
+            f"{self.user_prompt_prefix}\n\n"
+            "Recipe data:\n"
+            f"{json.dumps(record, indent=2, sort_keys=True)}"
+        )
