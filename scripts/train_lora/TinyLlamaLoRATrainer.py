@@ -49,8 +49,11 @@ class TinyLlamaLoRATrainer(BaseTrainer):
         self._temp_output_dir = f"models/lora_adapters/tmp-{self.base_name}"
         self.final_output_dir = f"models/lora_adapters/{self.base_name}"
         self.archive_path = f"models/lora_adapters/_archives/{self.base_name}.tar.gz"
-        self.log_path = f"logs/training/lora/{self.base_name}.log"
 
+        self.merged_output_dir = f"models/merged_llms/{self.base_name}"
+        self.merged_archive_path = f"models/merged_llms/_archives/{self.base_name}.tar.gz"
+
+        self.log_path = f"logs/training/lora/{self.base_name}.log"
         print(f"📝 Logging to {self.log_path}")
         log_fh = open(self.log_path, "w")
         sys.stdout = sys.stderr = log_fh
@@ -156,7 +159,6 @@ class TinyLlamaLoRATrainer(BaseTrainer):
         )
 
         resume_path = get_last_checkpoint(self._temp_output_dir)
-
         print(f"🔵 Training started at {self.start_time}")
 
         if resume_path:
@@ -184,27 +186,44 @@ class TinyLlamaLoRATrainer(BaseTrainer):
         run_seconds = (end_time - self.start_time).total_seconds()
         estimated_cost = 0.00
 
+        # Save LoRA adapter
         model.save_pretrained(self._temp_output_dir)
         print(f"✅ LoRA adapter saved to: {self._temp_output_dir}")
-
         shutil.move(self._temp_output_dir, self.final_output_dir)
 
-        archive_dir = Path(self.archive_path).parent
-        archive_dir.mkdir(exist_ok=True)
+        # Archive LoRA adapter
+        Path(self.archive_path).parent.mkdir(exist_ok=True)
         shutil.make_archive(
             base_name=self.archive_path.replace(".tar.gz", ""),
             format="gztar",
             root_dir=self.final_output_dir
         )
-        print(f"📦 Archive created: {self.archive_path}")
+        print(f"📦 LoRA adapter archive created: {self.archive_path}")
+
+        # Merge and save full model
+        print("🔀 Merging LoRA weights into base model...")
+        merged_model = trainer.model.merge_and_unload()
+        merged_model.save_pretrained(self.merged_output_dir)
+        self.tokenizer.save_pretrained(self.merged_output_dir)
+        print(f"✅ Merged model saved to: {self.merged_output_dir}")
+
+        # Archive merged model
+        Path(self.merged_archive_path).parent.mkdir(exist_ok=True)
+        shutil.make_archive(
+            base_name=self.merged_archive_path.replace(".tar.gz", ""),
+            format="gztar",
+            root_dir=self.merged_output_dir
+        )
+        print(f"📦 Merged model archive created: {self.merged_archive_path}")
 
         with open(self.log_path, "a") as log_file:
             duration = timedelta(seconds=int(run_seconds))
             log_file.write(f"\n📈 Training complete | loss={train_loss:.4f} | accuracy={token_accuracy:.4f} | total_time={duration}\n")
-            log_file.write(f"📦 Output Folder: {self.final_output_dir}\n")
+            log_file.write(f"📦 LoRA Folder: {self.final_output_dir}\n")
+            log_file.write(f"📦 Merged Model Folder: {self.merged_output_dir}\n")
             log_file.write(f"🧾 Training Summary:\n")
             log_file.write(f"  Model: TinyLlama-1.1B\n")
-            log_file.write(f"  Method: lora\n")
+            log_file.write(f"  Method: lora + merge\n")
             log_file.write(f"  Samples: {len(self.dataset)}\n")
             log_file.write(f"  Tokens: {self.total_tokens}\n")
             log_file.write(f"  Hardware: {self.hardware}\n")
