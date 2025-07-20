@@ -5,6 +5,7 @@ import platform
 import psycopg2
 from datetime import datetime
 from pathlib import Path
+import pytz
 import torch
 
 class BaseTrainer:
@@ -12,20 +13,20 @@ class BaseTrainer:
         raw_hw = input("💻 Use GPU (press Enter) or run on Mac M4 Max (type 'm')? ").strip().lower()
         self.is_mac_m4 = raw_hw == "m"
         self.hardware = "MacBook Pro M4 Max (128 GB)" if self.is_mac_m4 else self.detect_hardware()
-        self.db_active = False  # default to False until tested
+        self.db_connected = False
         self.conn = None
-        self.cur = None
+        self.total_records = 0
+        self.record_limit = 0
         self.try_connect_to_db()
-        if self.db_active:
-            self.total_records = self.fetch_total_record_count()
-        else:
-            self.total_records = 0
         self.record_limit = self.prompt_record_limit()
-        self.start_time = datetime.now()
+
+        # Use CET timezone for consistency
+        cet = pytz.timezone("CET")
+        self.start_time = datetime.now(cet)
         self.timestamp = self.start_time.strftime('%Y-%m-%d_%H-%M')
+
         self.output_dir = f"models/lora_adapters/{self.timestamp}_adapter"
-        self.log_path = f"logs/training/lora/{self.timestamp}_train.log"
-        self.symlink_latest_log()
+        # self.log_path must now be set by subclass
 
     def try_connect_to_db(self):
         try:
@@ -36,34 +37,32 @@ class BaseTrainer:
                 password=os.getenv("DB_PASSWORD", "benchmark"),
                 port=os.getenv("DB_PORT", "5432")
             )
-            self.cur = self.conn.cursor()
-            self.cur.execute("SELECT 1")
-            self.db_active = True
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM training_examples;")
+                self.total_records = cur.fetchone()[0]
+            self.db_connected = True
             print("✅ Database connection verified.")
         except Exception as e:
-            print("⚠️ Could not connect to DB. Training will proceed without DB logging.")
+            print("⚠️ Could not connect to DB. Training will proceed without DB access.")
             print(str(e))
-            self.db_active = False
-
-    def fetch_total_record_count(self):
-        self.cur.execute("SELECT COUNT(*) FROM training_examples;")
-        return self.cur.fetchone()[0]
+            self.db_connected = False
+            self.total_records = 0
 
     def prompt_record_limit(self):
-        if self.db_active:
+        if self.db_connected:
             print(f"📊 Total training examples available in DB: {self.total_records}")
         else:
             print("📊 DB is offline — training will load 0 records unless overridden manually.")
         raw = input("🔢 How many examples do you want to load? (press Enter to load all): ").strip()
         try:
             if raw == "" or raw == "-1":
-                if self.db_active:
+                if self.db_connected:
                     print("📅 Loading all available records.")
                     return None
                 else:
                     raise RuntimeError("❌ Cannot load all records — DB is unavailable.")
             val = int(raw)
-            if val <= 0 or (self.db_active and val > self.total_records):
+            if val <= 0 or (self.db_connected and val > self.total_records):
                 raise ValueError
             print(f"📅 Loading {val} randomly selected records.")
             return val
@@ -83,22 +82,16 @@ class BaseTrainer:
             device_type = "CPU"
         return f"{device_type} - {device_name} ({memory_gb} GB), running on {platform_info} ({hostname})"
 
-    def symlink_latest_log(self):
+    def symlink_latest_log(self, log_path: str):
         latest_symlink = Path("logs/training/lora/latest.log")
-        target_path = Path(self.log_path)
+        target_path = Path(log_path)
 
         try:
-            # Ensure log directory exists
             target_path.parent.mkdir(parents=True, exist_ok=True)
-
-            # Ensure log file exists (creates an empty one if needed)
             target_path.touch(exist_ok=True)
-
-            # Remove old symlink if it exists
             if latest_symlink.exists() or latest_symlink.is_symlink():
                 latest_symlink.unlink()
 
-            # Try relative symlink (host-safe), fallback to absolute (container-safe)
             try:
                 relative_target = target_path.relative_to(Path.cwd())
                 latest_symlink.symlink_to(relative_target)
@@ -108,29 +101,6 @@ class BaseTrainer:
             print(f"🔗 latest.log now points to: {latest_symlink.resolve()}")
         except Exception as e:
             print(f"⚠️ Could not create latest.log symlink: {e}")
-
-    def log_training_run(self, metadata):
-        if not self.db_active:
-            print("⚠️ DB logging skipped: no active connection.")
-            return
-        try:
-            self.cur.execute("""
-                INSERT INTO training_runs (
-                    model_name, method, dataset_description, total_samples, total_tokens, epochs,
-                    hardware, start_time, duration_seconds, final_loss, final_accuracy,
-                    log_path, model_output_path, notes, cost_usd, gpu_cost_per_hour
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id;
-            """, metadata)
-            training_run_id = self.cur.fetchone()[0]
-            self.conn.commit()
-            print(f"🗃️  Training run recorded in DB (ID = {training_run_id})")
-        except psycopg2.OperationalError as e:
-            print("❌ DB connection lost while logging training run.")
-            print(str(e))
-        except Exception as e:
-            print("❌ Unexpected error while logging training run:")
-            print(str(e))
 
     def run(self):
         raise NotImplementedError("Subclasses must implement the run() method.")

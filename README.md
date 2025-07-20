@@ -4,7 +4,7 @@ A production-grade benchmark to evaluate how well Generative AI models (e.g. GPT
 
 Designed for GxP environments, the benchmark scores models based on their ability to identify deviations — starting with ALCOA+ (GxP1) and extending into real-world logic and execution trace evaluation (GxP2 & GxP3, commercial only).
 
-We evaluate a **diverse mix of models**, including:
+A **diverse mix of models** are evaluated including:
 - Proprietary closed-source LLMs (e.g., OpenAI GPT-4o, Gemini, Claude)
 - Open-source foundation models (e.g., Mistral, LLaMA)
 - **Our own LoRA-trained variants** fine-tuned on structured GxP data

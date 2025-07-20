@@ -33,28 +33,34 @@ class TinyLlamaLoRATrainer(BaseTrainer):
         print(f"🧵 PyTorch threads set to: {torch.get_num_threads()}")
         super().__init__()
         self.model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+        self.model_size = "1.1b"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
+
         self.dataset = self.load_training_examples_from_db()
         self.tokenized_dataset = self.tokenize_dataset(self.dataset)
         self.total_tokens = sum(len(self.tokenizer.encode(p + "\n" + r)) for p, r in zip(self.dataset["prompt"], self.dataset["response"]))
 
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-        self.output_dir = f"models/lora_adapters/tinyllama-alcoa-{timestamp}"
-        self.log_path = f"logs/training/lora/{timestamp}_TinyLlama-1.1B_{self.record_limit or 'all'}_lora_m4mac_run1.log"
+        sample_count = len(self.dataset)
+        sample_label = f"{sample_count}"
+        hardware_label = "m4mac" if self.is_mac_m4 else "a100"
+        self.base_name = f"{self.timestamp}_tinyllama-{self.model_size}-{sample_label}-{hardware_label}"
+
+        self._temp_output_dir = f"models/lora_adapters/tmp-{self.base_name}"
+        self.final_output_dir = f"models/lora_adapters/{self.base_name}"
+        self.archive_path = f"models/lora_adapters/_archives/{self.base_name}.tar.gz"
+        self.log_path = f"logs/training/lora/{self.base_name}.log"
+
         print(f"📝 Logging to {self.log_path}")
         log_fh = open(self.log_path, "w")
         sys.stdout = sys.stderr = log_fh
 
-        # Create or update symlink to latest log
-        latest_link = Path("logs/training/lora/latest.log")
-        latest_link.unlink(missing_ok=True)
-        latest_link.symlink_to(Path(self.log_path).name)
+        self.symlink_latest_log(self.log_path)
 
         print("📋 Training Configuration:")
         print(f"  Model: {self.model_name}")
-        print(f"  Samples: {len(self.dataset)}")
-        print(f"  Output Dir: {self.output_dir}")
+        print(f"  Samples: {sample_count}")
+        print(f"  Output Dir (temp): {self._temp_output_dir}")
         print(f"  Log File: {self.log_path}")
         print(f"  Platform: macOS | Hardware: {self.hardware} | Full Power Mode: {'Yes' if self.is_mac_m4 else 'No'}")
 
@@ -125,7 +131,7 @@ class TinyLlamaLoRATrainer(BaseTrainer):
         )
 
         training_args = TrainingArguments(
-            output_dir=self.output_dir,
+            output_dir=self._temp_output_dir,
             per_device_train_batch_size=4,
             gradient_accumulation_steps=4,
             num_train_epochs=3,
@@ -149,10 +155,9 @@ class TinyLlamaLoRATrainer(BaseTrainer):
             data_collator=data_collator
         )
 
-        resume_path = get_last_checkpoint(self.output_dir)
+        resume_path = get_last_checkpoint(self._temp_output_dir)
 
-        start_time = datetime.now()
-        print(f"🔵 Training started at {start_time}")
+        print(f"🔵 Training started at {self.start_time}")
 
         if resume_path:
             print(f"🔁 Resuming training from checkpoint: {resume_path}")
@@ -161,58 +166,54 @@ class TinyLlamaLoRATrainer(BaseTrainer):
             print("🚀 Starting new training run")
             train_output = trainer.train()
 
+        print(f"DEBUG: train_output = {train_output}")
+        print(f"DEBUG: train_output.metrics = {getattr(train_output, 'metrics', None)}")
+
+        if not train_output or not getattr(train_output, "metrics", None):
+            print("⚠️ WARNING: train_output or metrics missing — using defaults.")
+            train_loss = 0.0
+            token_accuracy = 0.0
+        else:
+            metrics = train_output.metrics
+            train_loss = metrics.get("train_loss", 0.0)
+            token_accuracy = metrics.get("mean_token_accuracy")
+            if token_accuracy is None:
+                token_accuracy = round(max(0.0, min(1.0, 1.0 - train_loss)), 3)
+
         end_time = datetime.now()
-        print(f"✅ Training finished at {end_time}")
+        run_seconds = (end_time - self.start_time).total_seconds()
+        estimated_cost = 0.00
 
-        train_loss = train_output.metrics.get("train_loss")
-        token_accuracy = train_output.metrics.get("mean_token_accuracy")
-        if token_accuracy is None:
-            token_accuracy = round(max(0.0, min(1.0, 1.0 - train_loss)), 3)
+        model.save_pretrained(self._temp_output_dir)
+        print(f"✅ LoRA adapter saved to: {self._temp_output_dir}")
 
-        run_seconds = (end_time - start_time).total_seconds()
-        estimated_cost = 0.00  # Always 0 on Mac
+        shutil.move(self._temp_output_dir, self.final_output_dir)
 
-        model.save_pretrained(self.output_dir)
-        print(f"✅ LoRA adapter saved to: {self.output_dir}")
-
-        archive_path = shutil.make_archive(base_name=self.output_dir, format='gztar', root_dir=self.output_dir)
-        print(f"📦 Archive created: {archive_path}")
-
-        if self.is_mac_m4:
-            try:
-                os.remove(archive_path)
-                print(f"🧹 Auto-deleted archive (Mac-only): {archive_path}")
-            except Exception as e:
-                print(f"⚠️ Could not delete archive: {e}")
+        archive_dir = Path(self.archive_path).parent
+        archive_dir.mkdir(exist_ok=True)
+        shutil.make_archive(
+            base_name=self.archive_path.replace(".tar.gz", ""),
+            format="gztar",
+            root_dir=self.final_output_dir
+        )
+        print(f"📦 Archive created: {self.archive_path}")
 
         with open(self.log_path, "a") as log_file:
             duration = timedelta(seconds=int(run_seconds))
             log_file.write(f"\n📈 Training complete | loss={train_loss:.4f} | accuracy={token_accuracy:.4f} | total_time={duration}\n")
-            avg_epoch_time = duration.total_seconds() / 3
-            remaining_time = timedelta(seconds=int(avg_epoch_time * 2))
-            log_file.write(f"🕒 Estimated time remaining if same pace: {remaining_time}\n")
-
-        if os.path.getsize(self.log_path) < 100:
-            print(f"🚨 Warning: Log file {self.log_path} is suspiciously small — training may have failed.")
-
-        self.log_training_run((
-            "TinyLlama-1.1B",
-            "lora",
-            f"{len(self.dataset)} training examples (random sample)" if self.record_limit else "All training examples from DB",
-            len(self.dataset),
-            self.total_tokens,
-            3,
-            self.hardware,
-            start_time,
-            run_seconds,
-            train_loss,
-            token_accuracy,
-            self.log_path,
-            self.output_dir,
-            "Automated LoRA training run recorded by TinyLlamaLoRATrainer",
-            estimated_cost,
-            0.00
-        ))
+            log_file.write(f"📦 Output Folder: {self.final_output_dir}\n")
+            log_file.write(f"🧾 Training Summary:\n")
+            log_file.write(f"  Model: TinyLlama-1.1B\n")
+            log_file.write(f"  Method: lora\n")
+            log_file.write(f"  Samples: {len(self.dataset)}\n")
+            log_file.write(f"  Tokens: {self.total_tokens}\n")
+            log_file.write(f"  Hardware: {self.hardware}\n")
+            log_file.write(f"  Started: {self.start_time.isoformat()}\n")
+            log_file.write(f"  Duration (sec): {int(run_seconds)}\n")
+            log_file.write(f"  Train Loss: {train_loss:.4f}\n")
+            log_file.write(f"  Accuracy: {token_accuracy:.4f}\n")
+            log_file.write(f"  Log File: {self.log_path}\n")
+            log_file.write(f"  Cost (USD): {estimated_cost:.2f}\n")
 
 
 if __name__ == "__main__":
