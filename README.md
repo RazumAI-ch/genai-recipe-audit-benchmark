@@ -1,10 +1,73 @@
 # 🧪 GenAI Recipe Audit Benchmark
 
-Benchmarking GenAI Models for GxP Pharmaceutical Recipe Auditing: Proprietary, Open-Source, and Custom-Trained (LoRA & Full) LLMs
+Benchmarking GenAI Models for GxP Pharmaceutical Recipe Auditing  
+We evaluate how well different categories of LLMs can detect, classify, and explain GxP-relevant deviations in structured pharmaceutical manufacturing recipes. The benchmark includes models accessed via API as well as fine-tuned open models retrained locally or in the cloud.
 
 ---
 
-## 📋 Overview
+### 🏢 Proprietary Models (API-Based Inference Only)
+
+These commercial LLMs are accessed via API and evaluated without any retraining:
+
+- **OpenAI GPT-4o**
+- **Claude Opus**
+- **Gemini 1.5 Pro**
+
+Planned future additions include:
+
+- **Anthropic Claude 3.5 Sonnet**
+- **Cohere Command R+**
+- **xAI Grok**
+- **Mistral API models (as released)**
+
+---
+
+### 🧠 Open-Source Models (Inference Only)
+
+We will benchmark the following open models for out-of-the-box performance on GxP1–2 tasks:
+
+- **LLaMA-3 8B / 70B**
+- **Mixtral 8x7B**
+- **Gemma 2B / 7B**
+- **Phi-2**
+- **Qwen 1.5 14B / 72B / 110B**
+- **Yi-6B / Yi-34B**
+- **Mistral 7B Instruct**
+- **Command R / R+ (open variants)**
+- **TinyLlama 1.1B**
+- **LLaMA-3 400B / 460B** *(for future inference runs)*
+
+---
+
+### 🧪 Planned LoRA-Tuned Models
+
+The following open models are selected for **LoRA fine-tuning** based on practical feasibility under current resource constraints. They strike a balance between performance and retraining cost:
+
+- **TinyLlama 1.1B** *(already trained)*
+- **Phi-2**
+- **Gemma 2B / 7B**
+- **Qwen 7B / 14B**
+- **Yi 6B / 34B**
+- **Mistral 7B**
+- **Mixtral 8x7B**
+
+These will be fine-tuned using 10k+ annotated records to specialize in GxP1 and GxP2 detection and classification.
+
+---
+
+### 🧬 Planned Full Retraining (Selective)
+
+Full retraining is resource-intensive and will be limited to a small number of models:
+
+- **TinyLlama 1.1B** *(baseline completed)*
+- **Phi-2**
+- Possibly: **Qwen 7B** or **Yi 6B**
+
+These runs will be reserved for future large-scale experiments using dedicated cloud GPU instances or high-memory nodes.
+
+---
+
+## 📋 GxP Benchmark Overview
 
 This project provides an end-to-end benchmark to evaluate how well generative AI models identify **GxP-relevant deviations** in pharmaceutical manufacturing recipes. Our focus is on six scoring dimensions:
 
@@ -24,29 +87,19 @@ GxP1–2 are part of the open benchmark. GxP3–6 require access to proprietary 
 ## 🔧 Capabilities
 
 - ✅ Generate **synthetic recipe samples** with injected, documented ALCOA+ deviations (2% of records)
-- ✅ Evaluate across top LLMs:
-  - OpenAI GPT-4o
-  - Claude Opus (via Bedrock)
-  - Gemini 1.5 Pro
-  - Mistral 7B / Mixtral
-  - Our own fine-tuned **LoRA** and **fully retrained** open models (e.g., TinyLlama, Mistral)
-- ✅ Score performance per-model on:
-  - **Deviation detection and classification** (GxP1 & GxP2)
-  - Optional future GxP3–6 dimensions
-- ✅ Compare quality, speed, and price per model
-- ✅ Fully reproducible:
-  - Docker-based environment
-  - PostgreSQL with full schema
-  - Makefile orchestration for easy training, scoring, exporting
+- ✅ Evaluate across top LLMs (OpenAI, Claude, Gemini, Mistral, etc.)
+- ✅ Benchmark both open and fine-tuned models
+- ✅ Score detection and classification performance per model
+- ✅ Fully reproducible with Docker + PostgreSQL + Makefile
 
 ---
 
 ## 🎯 Project Goals
 
-- Evaluate **how well LLMs generalize** to the domain of regulated pharmaceutical recipe validation
-- Compare out-of-the-box LLMs with **task-specific fine-tunes** using LoRA or full retraining
-- Investigate the tradeoff between quality, cost, and inference speed
-- Provide **reproducible infrastructure** for ongoing benchmark expansion and scientific publication
+- Evaluate generalization of LLMs to regulated pharmaceutical auditing
+- Measure impact of LoRA and full retraining on deviation detection
+- Compare cost-effectiveness and speed per model
+- Build reproducible scientific infrastructure for regulatory-grade evaluation
 
 ---
 
@@ -79,36 +132,28 @@ python main.py
 
 ## 🧠 LoRA and Full Fine-Tuning
 
-We are not only evaluating pre-trained models — we actively train **LoRA adapters** and perform **full fine-tuning** on open-source base models such as:
-
-- TinyLlama 1.1B (baseline)
-- Mistral 7B
-- Phi-2, Gemma, and other efficient LLMs
-
 Our training dataset consists of 10,000 structured records annotated with ALCOA+ deviation types. Fine-tuning is optimized for the **GxP1** and **GxP2** tasks.
 
-All training runs are:
+Training runs are:
 - Logged with metadata (time, accuracy, loss, token count)
-- Executed using infrastructure such as **RunPod**, **AWS**, **Vultr**, and **local execution** for smaller models and training samples
-- Stored with timestamped folders and `.tar.gz` model archives
-
-### Goal
-Determine if domain-specific fine-tuning offers measurable performance gains over base models, and at what cost.
+- Executed via **RunPod**, **AWS**, **Vultr**, or **local hardware**
+- Archived with timestamped folders and `.tar.gz` snapshots
 
 ---
 
 ## 🧪 Benchmark Configuration
 
-Prompts and price estimates are defined in:
-- `config/prompts.yaml`: Unified system/user prompt across all models
-- `config/model_pricing.yaml`: Token-based cost configuration per model
+Defined in:
 
-Evaluations are designed to:
-- Use **same prompt** for all models to ensure comparability
-- Return **structured JSON results** (summary + record-level findings)
-- Normalize scores between 0–1 for consistent rankings
-- Track detection **accuracy per deviation** type
-- Track model behavior on **control datasets** (100% clean and 100% faulty)
+- `config/prompts.yaml`: Unified prompt across all models
+- `config/model_pricing.yaml`: Token-based cost tracking
+
+Design includes:
+
+- Same prompt for all models
+- Structured JSON output
+- Normalized scoring [0–1]
+- Control datasets (100% clean or 100% faulty)
 
 ---
 
@@ -156,35 +201,30 @@ There are **30 deviation types** used to classify issues:
 
 ## 📊 Cost Monitoring
 
-- All benchmarks track:
-  - API cost (token-based or runtime-based)
-  - Runtime duration per model
-  - Score per run
+All benchmarks track:
 
-This enables future reporting on performance-to-cost tradeoffs across models.
+- API usage and token cost
+- Runtime per model
+- Score per run
 
 ---
 
 ## 🚚 Deployment Roadmap
 
-- ✅ CLI-based runner with Docker and PostgreSQL
-- 🔜 Web app frontend for:
-  - Triggering benchmarks
-  - Uploading recipes
-  - Viewing dashboards
-  - Comparing model runs
+- ✅ CLI-based execution (Docker + PostgreSQL)
+- 🔜 Web-based interface for running benchmarks and viewing results
 
 ---
 
 ## 📑 Licensing & Reuse
 
-- GxP1 and GxP2 benchmark logic is fully open-source
-- GxP3–6 remain commercial-only due to sensitive real-world logic and process mappings
+- GxP1 and GxP2 logic is fully open-source
+- GxP3–6 are commercial due to proprietary logic and trace requirements
 
 ---
 
 ## 🏁 Final Notes
 
-- 📢 Benchmark prompt and deviation types are **explicitly tied to ALCOA+ principles** for traceability
-- 🔍 Each deviation in the dataset is documented with **why it violates GxP**
-- 🔄 Benchmark system is fully **automated and extensible**, designed to support future models and evaluation modes
+- 📢 Prompts and deviation types are tied to ALCOA+ principles
+- 🔍 Each deviation includes rationale for GxP non-compliance
+- 🔄 Benchmark is fully automatable and extensible for future LLMs
