@@ -1,6 +1,7 @@
 # 🧪 GenAI Recipe Audit Benchmark
 
-Benchmarking GenAI Models for GxP Pharmaceutical Recipe Auditing  
+Benchmarking GenAI Models for GxP Pharmaceutical Recipe Auditing.
+
 We evaluate how well each individual language model performs in detecting, classifying, and explaining GxP-relevant deviations in structured pharmaceutical manufacturing recipes. All models are tested on the same tasks, using identical prompts and evaluation logic, allowing direct comparison of their performance, cost, and reliability.
 
 ---
