@@ -43,7 +43,7 @@ backup-db: clear refresh-schema-docs save_to_file copy-latest-db-to-archive arch
 	@$(MAKE) show-db-stats
 
 wait-for-db:
-	@echo "Waiting for DB to become available..."
+#@echo "Waiting for DB to become available..."
 	@until docker exec genai-recipe-audit-benchmark-db-1 pg_isready -U benchmark -d benchmarkdb; do sleep 1; done
 
 recreate_empty_db:
