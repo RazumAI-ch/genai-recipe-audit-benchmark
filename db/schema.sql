@@ -300,7 +300,8 @@ CREATE TABLE public.sample_records (
     content jsonb NOT NULL,
     generation_prompt text,
     injected_deviation_ids text[],
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    source text
 );
 
 

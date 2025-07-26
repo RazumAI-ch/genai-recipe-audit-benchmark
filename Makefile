@@ -6,13 +6,28 @@
 # 📐 Schema Versioning
 SCHEMA_VERSION ?= v1.4
 
-
-
 # ▶️ Benchmark Execution
 
 run: clear
 	@echo "make run"
 	docker-compose run --remove-orphans cli python main.py
+
+show-db-samples-stats:
+	docker compose exec db psql -U benchmark -d benchmarkdb -c "\
+	SELECT '📊 Total sample_records' AS metric, COUNT(*) AS value FROM sample_records; \
+	SELECT '📌 Records with deviations' AS metric, COUNT(DISTINCT sample_record_id) AS value FROM injected_deviations; \
+	SELECT '🔴 Records with critical deviations' AS metric, COUNT(DISTINCT id.sample_record_id) AS value \
+	FROM injected_deviations id \
+	JOIN deviation_types d ON id.deviation_type_id = d.id \
+	WHERE d.severity = 'critical'; \
+	SELECT '🟠 Records with major deviations' AS metric, COUNT(DISTINCT id.sample_record_id) AS value \
+	FROM injected_deviations id \
+	JOIN deviation_types d ON id.deviation_type_id = d.id \
+	WHERE d.severity = 'major'; \
+	SELECT '🟢 Records with minor deviations' AS metric, COUNT(DISTINCT id.sample_record_id) AS value \
+	FROM injected_deviations id \
+	JOIN deviation_types d ON id.deviation_type_id = d.id \
+	WHERE d.severity = 'minor';"
 
 # Starting SQL
 psql:
@@ -21,11 +36,11 @@ psql:
 # 🐘 PostgreSQL Container Lifecycle
 
 backup-db: clear refresh-schema-docs save_to_file copy-latest-db-to-archive archive-latest-logs
-	@echo "♻️  Resetting DB and restoring schema..."
+	@echo "Resetting DB and restoring schema..."
 	@$(MAKE) recreate_empty_db
 	@$(MAKE) import-db
-	@echo "✅ Backup, reset, and import completed."
-	@$(MAKE) show-stats
+	@$(MAKE) fix-sequences
+	@$(MAKE) show-db-stats
 
 wait-for-db:
 	@echo "Waiting for DB to become available..."
@@ -42,50 +57,79 @@ save_to_file: wait-for-db
 	@mkdir -p db/backups
 	@TIMESTAMP=$$(date "+%Y-%m-%d_%H-%M") && \
 	FILE="db/backups/$${TIMESTAMP}_benchmarkdb_$(SCHEMA_VERSION).sql.gz" && \
-	echo "📦 Saving backup: $${FILE}" && \
 	docker exec genai-recipe-audit-benchmark-db-1 \
 	pg_dump -U benchmark -d benchmarkdb | gzip > "$$FILE" && \
-	echo "✅ Backup saved." && \
 	ls -1t db/backups/*.sql.gz | tail -n +21 | xargs rm -f --
 
 import-db:
 	@FILE="archive/db-backup-latest.zip"; \
-	echo "📥 Importing backup into benchmarkdb from $$FILE" && \
 	gunzip -c "$$FILE" | docker exec -i genai-recipe-audit-benchmark-db-1 \
 	psql -q -U benchmark -d benchmarkdb > /dev/null
 
-show-stats:
+# 💾 Import any .gz backup by specifying FILE=...
+# Example of running: make import-db-adhoc FILE=db/backups/2025-07-26_19-46.gz
+import-db-adhoc:
+	@echo "Resetting DB before importing ad-hoc backup..."
+	@$(MAKE) recreate_empty_db
+	@gunzip -c "$(FILE)" | docker exec -i genai-recipe-audit-benchmark-db-1 \
+	psql -q -U benchmark -d benchmarkdb > /dev/null
+	@$(MAKE) fix-sequences
+	@$(MAKE) refresh-schema-docs
+	@$(MAKE) show-db-stats
+
+refresh-schema-docs:
+	@docker exec genai-recipe-audit-benchmark-db-1 \
+	pg_dump -U benchmark -d benchmarkdb --schema-only --clean > db/schema.sql
+
+	@docker compose run --rm -e PGPASSWORD=benchmark cli \
+	psql -U benchmark -h db -d benchmarkdb --pset pager=off -f db/refresh_schema_docs.sql > /dev/null
+
+	@$(MAKE) sort-schema-docs
+
+	@COUNT=$$(docker compose exec -T db \
+	psql -t -U benchmark -d benchmarkdb -c "SELECT COUNT(*) FROM schema_docs WHERE description LIKE '[TODO:%]'" | tr -d '[:space:]'); \
+	if [ "$$COUNT" -gt 0 ]; then \
+	echo ""; \
+	echo "🔍 The following fields are missing descriptions in schema_docs:"; \
+	echo "📌 Please generate and insert descriptions manually via SQL."; \
+	docker compose exec db \
+	psql -U benchmark -d benchmarkdb -c "\
+	SELECT table_name, column_name FROM schema_docs \
+	WHERE description LIKE '[TODO:%]' ORDER BY table_name, column_name;"; \
+	fi
+
+
+show-db-stats:
 	docker exec -it genai-recipe-audit-benchmark-db-1 \
 	psql -U benchmark -d benchmarkdb -c "\
 	SELECT relname AS table, n_live_tup AS estimated_rows \
 	FROM pg_stat_user_tables ORDER BY relname;"
 
+# 🛠 Fix all PostgreSQL sequences to match current data state
+# When dropping and restoring the DB from a backup, Postgres does not automatically
+# reset sequences (like sample_records_id_seq, injected_deviations_id_seq, etc.)
+# to align with the current max(id) values in their respective tables.
+# This target runs a script that resets all sequences to prevent primary key conflicts.
+fix-sequences:
+	docker compose exec db psql -U benchmark -d benchmarkdb -f /app/db/fix_all_sequences.sql
 
-refresh-schema-docs:
-	@echo "📚 Updating db/schema.sql based on actual DB schema"
-	docker exec genai-recipe-audit-benchmark-db-1 \
-	pg_dump -U benchmark -d benchmarkdb --schema-only --clean > db/schema.sql
-	@echo "📚 Updating schema_docs with any missing fields..."
-	docker compose run --rm -e PGPASSWORD=benchmark cli \
-	psql -U benchmark -h db -d benchmarkdb --pset pager=off -f db/refresh_schema_docs.sql
-	@echo "✅ Schema and docs are now in sync."
+# 📑 Ensures schema_docs entries are grouped by table and sorted by column name
+# This improves readability when querying schema_docs directly,
+# making it easier to view or edit all fields for a specific table.
+# Especially useful after adding new fields, which would otherwise appear at the end.
+sort-schema-docs:
+	docker compose exec db psql -q -U benchmark -d benchmarkdb -f /app/db/sort_schema_docs.sql > /dev/null
 
 # Archiving of db and logs
 
-# Copy latest DB backup into archive/ with static filename
 copy-latest-db-to-archive:
-	@echo "📦 Copying latest DB backup to archive/db-backup-latest.zip"
 	@mkdir -p archive
 	@LATEST=$$(ls -t db/backups/*.sql.gz | head -n 1) && \
-	cp "$$LATEST" archive/db-backup-latest.zip && \
-	echo "✅ Copied: $$LATEST → archive/db-backup-latest.zip"
+	cp "$$LATEST" archive/db-backup-latest.zip
 
 archive-latest-logs:
-	@echo "📦 Archiving latest logs to archive/logs-latest.zip"
 	@mkdir -p archive
-	@zip -j archive/logs-latest.zip logs/training/lora/* || echo "No logs to archive"
-	@echo "✅ Logs archived to archive/logs-latest.zip"
-
+	@zip -j archive/logs-latest.zip logs/training/lora/* > /dev/null 2>&1 || true
 
 # Training
 
@@ -104,17 +148,14 @@ train-lora-tinyllama: wait-for-db
 	  python scripts/train_lora/TinyLlamaLoRATrainer.py
 
 tail-lora-log:
-	@echo "⏳ Waiting for logs/training/lora/latest.log to appear..."
 	@while [ ! -f logs/training/lora/latest.log ]; do sleep 1; done
-	@echo "📄 Log found — now tailing:"
-	@echo
 	@tail -f logs/training/lora/latest.log
 
 track-lora-progress:
 	python3 scripts/utils/track_lora_progress.py
 
-
 # 🤖 Training Data Generation
+
 generate-training-examples:
 	docker compose exec cli python scripts/generate_training_examples.py
 
@@ -136,12 +177,10 @@ check-training-llm-sources:
 	psql -U benchmark -d benchmarkdb -c "\
 	SELECT id, source_llm FROM training_examples ORDER BY id DESC LIMIT 10;"
 
-
 # Utils
 
 clear:
 	@printf "\033c"
-
 
 # ============================================
 # 📛 .PHONY: Explicitly mark all targets as non-file-based
@@ -151,3 +190,5 @@ clear:
         setup-db run show-db-stats \
         save_to_file import-db restore-into-new-db generate-training-examples \
         check-training-examples check-training-example-deviations check-training-llm-sources
+
+# One off commands - to be removed later
