@@ -2,7 +2,7 @@
 
 """
 This interface defines the contract for any individual unit test used in the
-benchmark or llm_training workflows.
+benchmark_llms or llm_training workflows.
 
 All unit test implementations must inherit from this class and implement the `run()` method.
 

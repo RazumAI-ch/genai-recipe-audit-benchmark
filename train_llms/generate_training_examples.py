@@ -13,8 +13,8 @@ NUM_RECORDS = 10000
 DB_CONFIG = dict(
     host=os.getenv("DB_HOST", "db"),  # "db" = Docker Compose service name
     dbname=os.getenv("DB_NAME", "benchmarkdb"),
-    user=os.getenv("DB_USER", "benchmark"),
-    password=os.getenv("DB_PASSWORD", "benchmark"),
+    user=os.getenv("DB_USER", "../benchmark_llms"),
+    password=os.getenv("DB_PASSWORD", "../benchmark_llms"),
     port=os.getenv("DB_PORT", "5432")
 )
 

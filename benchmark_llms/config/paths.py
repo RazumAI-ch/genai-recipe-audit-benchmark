@@ -2,9 +2,9 @@
 # Benchmark LLM Configuration
 # ============================
 
-PATH_CONFIG_BENCHMARK_BASE = "benchmark/config"
+PATH_CONFIG_BENCHMARK_BASE = "benchmark_llms/config"
 
-# Prompt configuration (used for all benchmark LLMs)
+# Prompt configuration (used for all benchmark_llms LLMs)
 PATH_CONFIG_PROMPT = f"{PATH_CONFIG_BENCHMARK_BASE}/prompts.yaml"
 
 # Individual LLM model configs

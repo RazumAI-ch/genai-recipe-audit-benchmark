@@ -7,7 +7,7 @@ from unit_tests.unit_test_abstract import UnitTestInterface
 class UnitTestFactoryAbstract:
     """
     Abstract factory class to manage registration and access of unit tests.
-    Intended to be subclassed separately for benchmark and llm_training unit tests.
+    Intended to be subclassed separately for benchmark_llms and llm_training unit tests.
 
     Each subclass should define:
     - ENABLED_UNIT_TESTS: Set of test names to run

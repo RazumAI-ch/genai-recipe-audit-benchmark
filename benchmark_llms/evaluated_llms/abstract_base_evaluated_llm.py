@@ -1,10 +1,10 @@
-# File: benchmark/abstract_base_evaluated_llm.py
+# File: benchmark_llms/abstract_base_evaluated_llm.py
 
 from abc import ABC
 from typing import Dict, Any
-from benchmark.evaluated_llms.interface_llm import EvaluatedLLMInterface
-import benchmark.config.keys
-import benchmark.config.paths
+from benchmark_llms.evaluated_llms.interface_llm import EvaluatedLLMInterface
+import benchmark_llms.config.keys
+import benchmark_llms.config.paths
 import yaml
 import json
 
@@ -26,8 +26,8 @@ class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
         self.user_prompt_prefix = ""
         self.model = None
         self.batch_size = None
-        self.temperature = benchmark.config.keys.LLM_TEMPERATURE
-        self.max_tokens = benchmark.config.keys.LLM_MAX_TOKENS_DEFAULT
+        self.temperature = benchmark_llms.config.keys.LLM_TEMPERATURE
+        self.max_tokens = benchmark_llms.config.keys.LLM_MAX_TOKENS_DEFAULT
 
     def prepare(self, overrides: Dict[str, Any] = None):
         """
@@ -38,16 +38,16 @@ class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
         in the original model_config (e.g., to change model version dynamically).
         """
         self.prompt_config = self._load_prompt_config()
-        self.system_prompt = self.prompt_config.get(benchmark.config.keys.SYSTEM_PROMPT, "")
-        self.user_prompt_prefix = self.prompt_config.get(benchmark.config.keys.USER_PROMPT, "")
+        self.system_prompt = self.prompt_config.get(benchmark_llms.config.keys.SYSTEM_PROMPT, "")
+        self.user_prompt_prefix = self.prompt_config.get(benchmark_llms.config.keys.USER_PROMPT, "")
 
         # Merge in runtime overrides
         if overrides:
             self.model_config.update(overrides)
 
         # Required fields — fail fast if missing
-        self.model = self.model_config[benchmark.config.keys.MODEL]
-        self.batch_size = self.model_config.get(benchmark.config.keys.BATCH_SIZE, 10)
+        self.model = self.model_config[benchmark_llms.config.keys.MODEL]
+        self.batch_size = self.model_config.get(benchmark_llms.config.keys.BATCH_SIZE, 10)
 
     @classmethod
     def get_model_key(cls) -> str:
@@ -57,7 +57,7 @@ class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
 
 
     @staticmethod
-    def _load_prompt_config(path: str = benchmark.config.paths.PATH_CONFIG_PROMPT) -> dict:
+    def _load_prompt_config(path: str = benchmark_llms.config.paths.PATH_CONFIG_PROMPT) -> dict:
         """
         Load system and user prompts from the YAML config file.
         Used to provide consistent prompting across models.

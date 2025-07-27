@@ -53,7 +53,7 @@ _import-db:
 
 # Import any .gz backup by specifying FILE=...
 # Example: make import-db-adhoc FILE=archive/backup/db-backup/2025-07-26_19-46.gz
-import-db-adhoc:
+import-db-adhoc: _clear
 	@echo "Resetting DB before importing ad-hoc backup..."
 	@$(MAKE) _recreate_empty_db
 	@gunzip -c "$(FILE)" | docker exec -i genai-recipe-audit-benchmark-db-1 \

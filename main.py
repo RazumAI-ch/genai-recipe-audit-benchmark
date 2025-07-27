@@ -1,7 +1,7 @@
 # File: main.py
 
 import sys
-from benchmark.evaluated_llms.factory_evaluated_llm import EvaluatedLLMFactory
+from benchmark_llms.evaluated_llms.factory_evaluated_llm import EvaluatedLLMFactory
 
 def run_benchmark(max_records):
     factory = EvaluatedLLMFactory()

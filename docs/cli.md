@@ -50,7 +50,7 @@ make run
 
 ### Load a SQL File
 ```bash
-docker compose exec db psql -U benchmark -d benchmarkdb -f /app/db/some_script.sql
+docker compose exec db psql -U benchmark_llms -d benchmarkdb -f /app/db/some_script.sql
 ```
 
 ### Open psql Prompt

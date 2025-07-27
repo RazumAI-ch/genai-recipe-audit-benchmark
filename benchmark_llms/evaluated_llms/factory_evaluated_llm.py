@@ -1,12 +1,12 @@
-# File: benchmark/factory_evaluated_llm.py
+# File: benchmark_llms/factory_evaluated_llm.py
 
 import typing
 import db.database
-import benchmark.config.keys
-from benchmark.evaluated_llms.implementations.model_openai import OpenAIModel
+import benchmark_llms.config.keys
+from benchmark_llms.evaluated_llms.implementations.model_openai import OpenAIModel
 
 # Define which models are currently enabled for evaluation
-ENABLED_MODELS = benchmark.config.keys.ENABLED_BENCHMARK_MODELS
+ENABLED_MODELS = benchmark_llms.config.keys.ENABLED_BENCHMARK_MODELS
 
 # Registry of all known models mapped to their implementation class
 MODEL_REGISTRY = {
@@ -19,7 +19,7 @@ MODEL_REGISTRY = {
 
 class EvaluatedLLMFactory:
     """
-    Factory class responsible for registering and running all enabled benchmark LLMs.
+    Factory class responsible for registering and running all enabled benchmark_llms LLMs.
     """
 
     def __init__(self):

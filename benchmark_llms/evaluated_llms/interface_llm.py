@@ -1,4 +1,4 @@
-# File: benchmark/interface_llm.py
+# File: benchmark_llms/interface_llm.py
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any

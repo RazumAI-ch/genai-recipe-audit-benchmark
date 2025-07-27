@@ -9,7 +9,7 @@ from unit_tests.benchmark_tests.core.test_schema_sync import SchemaDocsSyncTest
 
 class BenchmarkTestFactory(unit_test_factory_interface.UnitTestFactoryInterface):
     """
-    Concrete factory that registers all unit tests relevant to the benchmark pipeline.
+    Concrete factory that registers all unit tests relevant to the benchmark_llms pipeline.
     Provides a list of enabled test instances implementing UnitTestInterface.
     """
 

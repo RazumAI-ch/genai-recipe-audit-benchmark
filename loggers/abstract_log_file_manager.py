@@ -6,7 +6,7 @@ import zoneinfo
 import typing
 import abc
 import json
-import benchmark.config.paths
+import benchmark_llms.config.paths
 
 
 class AbstractLogFileManager(abc.ABC):
@@ -15,20 +15,20 @@ class AbstractLogFileManager(abc.ABC):
     Subclasses must call prepare(model_name) before writing logs.
     """
 
-    LOG_FOLDER_PATH: str = None  # Full resolved path (e.g., logs/ephemeral/debug/benchmark/gpt-4o)
-    _context_folder: str = None  # e.g., 'benchmark', 'training'
+    LOG_FOLDER_PATH: str = None  # Full resolved path (e.g., logs/ephemeral/debug/benchmark_llms/gpt-4o)
+    _context_folder: str = None  # e.g., 'benchmark_llms', 'training'
     _model_subfolder: str = None  # e.g., 'gpt-4o'
 
     def __init__(self, context_folder: str, subfolder_name: str):
         if not subfolder_name:
             raise ValueError("subfolder_name (typically model name) must be provided.")
         if not context_folder:
-            raise ValueError("context_folder (e.g., 'benchmark') must be provided.")
+            raise ValueError("context_folder (e.g., 'benchmark_llms') must be provided.")
 
         self._context_folder = context_folder
         self._model_subfolder = subfolder_name
         self.LOG_FOLDER_PATH = os.path.join(
-            benchmark.config.paths.PATH_LOGS_DEBUG,
+            benchmark_llms.config.paths.PATH_LOGS_DEBUG,
             self._context_folder,
             self._model_subfolder
         )

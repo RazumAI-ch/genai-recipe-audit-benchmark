@@ -1,11 +1,11 @@
-# File: benchmark/abstract_proprietary_evaluated_llm.py
+# File: benchmark_llms/abstract_proprietary_evaluated_llm.py
 
 import os
 from abc import ABC
 import json
-from benchmark.evaluated_llms.abstract_base_evaluated_llm import BaseEvaluatedLLM
-import benchmark.utils.utils as utils
-from benchmark.config.keys import API_KEY_ENV
+from benchmark_llms.evaluated_llms.abstract_base_evaluated_llm import BaseEvaluatedLLM
+import benchmark_llms.utils.utils as utils
+from benchmark_llms.config.keys import API_KEY_ENV
 
 
 class ProprietaryEvaluatedLLM(BaseEvaluatedLLM, ABC):

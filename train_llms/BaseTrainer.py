@@ -33,8 +33,8 @@ class BaseTrainer:
             self.conn = psycopg2.connect(
                 host=os.getenv("DB_HOST", "db"),
                 dbname=os.getenv("DB_NAME", "benchmarkdb"),
-                user=os.getenv("DB_USER", "benchmark"),
-                password=os.getenv("DB_PASSWORD", "benchmark"),
+                user=os.getenv("DB_USER", "../benchmark_llms"),
+                password=os.getenv("DB_PASSWORD", "../benchmark_llms"),
                 port=os.getenv("DB_PORT", "5432")
             )
             with self.conn.cursor() as cur:
