@@ -5,7 +5,7 @@ import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
-log_symlink = Path("logs/training/lora/latest.log")
+log_symlink = Path("../../logs/archivable/llm_training/lora/latest.log")
 pattern = re.compile(r"(\d+)/(\d+) \[\d+:\d+<([\d:]+), [\d.]+s/it\]")
 
 def parse_eta_line(line):
@@ -40,7 +40,7 @@ def resolve_latest_log():
     raise FileNotFoundError("❌ latest.log is not a file or symlink.")
 
 def tail_log(file_path):
-    print(f"⏳ Tracking LoRA training progress from: {file_path}")
+    print(f"⏳ Tracking LoRA llm_training progress from: {file_path}")
     with open(file_path, "r") as f:
         f.seek(0, 2)  # jump to end of file
         while True:

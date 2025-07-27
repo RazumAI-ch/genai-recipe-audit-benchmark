@@ -1,5 +1,3 @@
-# File: .gitignore
-
 # Python cache and metadata
 __pycache__/
 *.py[cod]
@@ -11,9 +9,6 @@ __pycache__/
 
 # Local DB, logs, or backups
 *.sqlite3
-db/backups/*.sql
-db/backups/*
-!db/backups/.gitkeep
 
 # IDE and editor settings
 .idea/
@@ -32,7 +27,10 @@ training_data/*
 # Models
 models/*
 
-# Logs
 # Logs and archives
 logs/*
 !logs/.gitkeep
+
+# Backups
+archive/backup/*
+!archive/backup/db-backup/.gitkeep

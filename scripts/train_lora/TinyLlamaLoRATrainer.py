@@ -53,7 +53,7 @@ class TinyLlamaLoRATrainer(BaseTrainer):
         self.merged_output_dir = f"models/merged_llms/{self.base_name}"
         self.merged_archive_path = f"models/merged_llms/_archives/{self.base_name}.tar.gz"
 
-        self.log_path = f"logs/training/lora/{self.base_name}.log"
+        self.log_path = f"../../logs/archiveable/llm_training/lora/{self.base_name}.log"
         print(f"📝 Logging to {self.log_path}")
         log_fh = open(self.log_path, "w")
         sys.stdout = sys.stderr = log_fh
@@ -118,7 +118,7 @@ class TinyLlamaLoRATrainer(BaseTrainer):
             )
             print("🧠 CPU-friendly 4-bit quantization enabled.")
         else:
-            print("🚀 Full precision (GPU-optimized) training.")
+            print("🚀 Full precision (GPU-optimized) llm_training.")
 
         model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
@@ -162,10 +162,10 @@ class TinyLlamaLoRATrainer(BaseTrainer):
         print(f"🔵 Training started at {self.start_time}")
 
         if resume_path:
-            print(f"🔁 Resuming training from checkpoint: {resume_path}")
+            print(f"🔁 Resuming llm_training from checkpoint: {resume_path}")
             train_output = trainer.train(resume_from_checkpoint=resume_path)
         else:
-            print("🚀 Starting new training run")
+            print("🚀 Starting new llm_training run")
             train_output = trainer.train()
 
         print(f"DEBUG: train_output = {train_output}")

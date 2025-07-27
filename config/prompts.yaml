@@ -22,54 +22,52 @@ user_prompt: |
 
   4. **Deviation Classification**
      - For each detected issue, assign:
-       - a **Deviation Type** (e.g., Missing Data, Format Error, Value Out of Range, Status Conflict, Timestamp Error, Data Conflict, Invalid Status, Incomplete Record)
-       - a **Severity Level** (**Critical**, **Moderate**, or **Minor**)
+       - a **Deviation Type** (use one of the 30 defined types below)
+       - a **Severity Level** (**Critical**, **Major**, or **Minor**)
 
-     **Severity Definitions**
+     **Deviation Types and Severity Mapping:**
 
-     - **Critical:**  
-       Issues that pose a serious risk to patient safety, regulatory compliance, or process integrity.  
-       Examples include:  
-         - Missing required process steps  
-         - Grossly incorrect quantities  
-         - Invalid or conflicting status codes  
-         - Negative values in required positive fields  
-         - Data that may indicate fraud or falsification  
+     - **Critical**
+       - mislabeling: Material or product label does not match data entry
+       - missing_actor: No person or system recorded the step
+       - altered_timestamp: Timestamp altered after initial logging
+       - fake_signature: Operator name not found in authorization list
+       - step_skipped: Entire procedural step is missing
+       - step_out_of_order: Process step occurs out of defined sequence
+       - conflicting_approvals: Two conflicting sign-offs recorded for the same step
+       - non_auditable_change: Change made without audit trail/log
+       - archival_failure: Record flagged as archived but not accessible on demand
 
-     - **Moderate:**  
-       Issues that impact data integrity or efficiency but not immediate safety.  
-       Examples:  
-         - Slightly out-of-range quantities  
-         - Incomplete operator names  
-         - Non-standard timestamps  
-         - Duplicate steps  
-         - Deprecated codes  
+     - **Major**
+       - timestamp_overlap: Two steps share the same timestamp
+       - incorrect_calculation: Derived value or conversion is incorrect
+       - ambiguous_user: Initials or ID are unclear or non-unique
+       - unlinked_signature: Signature exists but not linked to user metadata
+       - future_date: Action recorded as occurring in the future
+       - backdated_entry: Timestamp manually changed to appear earlier
+       - delayed_entry: Record entered significantly after event without explanation
+       - field_overwritten: A previously recorded value was overwritten
+       - missing_field: Required field is blank or NULL
+       - partial_data: Only partial value is recorded (e.g., only time, no date)
+       - status_mismatch: Status field conflicts with actual completion state
+       - missing_change_log: No record of changes to a previously edited field
+       - orphan_reference: Reference made to a record that doesn’t exist or can’t be found
 
-     - **Minor:**  
-       Cosmetic or non-blocking issues.  
-       Examples:  
-         - Minor formatting problems  
-         - Typos  
-         - Slight naming inconsistencies  
+     - **Minor**
+       - missing_unit: Quantity is provided without a unit of measure
+       - duplicate_entry: Two identical entries exist for the same step
+       - external_copy_paste: Text copy-pasted from external document or clipboard
+       - unclear_instruction: Instruction is vague or ambiguous
+       - inconsistent_formatting: Inconsistent use of units, symbols, or decimals
+       - handwriting_simulation: Text includes simulated handwriting font
+       - placeholder_value: Placeholder like "TBD" or "123" left in final record
+       - broken_link: URL or internal reference is no longer valid
 
   5. **Summary Text**
      - After auditing all records, include a short executive summary of the overall quality, key issues, and any systemic risks.
      - Use 5–6 sentences for minor issues, up to 15 if critical issues dominate.
 
-  6. **Deviation Type Severity Mapping**
-     - Always assign severity as follows if applicable:
-         - Missing Required Step: Critical
-         - Grossly Incorrect Quantity: Critical
-         - Conflicting Status Code: Critical
-         - Negative Quantity: Critical
-         - Slightly Out of Range Quantity: Moderate
-         - Incomplete Operator Name: Moderate
-         - Non-Standard Timestamp: Moderate
-         - Duplicate Record: Moderate
-         - Minor Formatting Error: Minor
-         - Non-Critical Typo: Minor
-
-  7. **Required Response Format**
+  6. **Required Response Format**
      Return a single valid JSON object in the following format:
 
      {
@@ -89,5 +87,6 @@ user_prompt: |
        ]
      }
 
-  - Include all records in the output, even if they have no deviations (with an empty deviations list).
+  - Only include records that contain at least one deviation.
+  - Do not include records with an empty `deviations` list.
   - Do not include any explanation or comments outside the JSON structure.

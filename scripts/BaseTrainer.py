@@ -50,9 +50,9 @@ class BaseTrainer:
 
     def prompt_record_limit(self):
         if self.db_connected:
-            print(f"📊 Total training examples available in DB: {self.total_records}")
+            print(f"📊 Total llm_training examples available in DB: {self.total_records}")
         else:
-            print("📊 DB is offline — training will load 0 records unless overridden manually.")
+            print("📊 DB is offline — llm_training will load 0 records unless overridden manually.")
         raw = input("🔢 How many examples do you want to load? (press Enter to load all): ").strip()
         try:
             if raw == "" or raw == "-1":
@@ -83,7 +83,7 @@ class BaseTrainer:
         return f"{device_type} - {device_name} ({memory_gb} GB), running on {platform_info} ({hostname})"
 
     def symlink_latest_log(self, log_path: str):
-        latest_symlink = Path("logs/training/lora/latest.log")
+        latest_symlink = Path("../logs/archivable/llm_training/lora/latest.log")
         target_path = Path(log_path)
 
         try:

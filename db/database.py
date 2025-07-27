@@ -2,26 +2,10 @@
 
 import psycopg2
 import os
+from typing import Optional
+
 
 def get_db_connection():
-    """
-    Establishes and returns a new connection to the PostgreSQL benchmark database.
-
-    This function centralizes DB connection logic so that any part of the application
-    needing DB access (training runs, benchmark logs, schema updates, etc.)
-    can reuse this configuration. It reads connection parameters from environment
-    variables to allow flexibility across local, Docker, or cloud deployments.
-
-    Env vars used:
-    - DB_HOST: the hostname of the database server (default: 'db' for Docker)
-    - POSTGRES_DB: the name of the database to connect to (default: 'benchmarkdb')
-    - POSTGRES_USER: the username for authentication (default: 'benchmark')
-    - POSTGRES_PASSWORD: the user's password (default: 'benchmark')
-    - DB_PORT: the port PostgreSQL is listening on (default: '5432')
-
-    Returns:
-        A live psycopg2 connection object, which must be manually closed by the caller.
-    """
     return psycopg2.connect(
         host=os.getenv("DB_HOST", "db"),
         dbname=os.getenv("POSTGRES_DB", "benchmarkdb"),
@@ -29,3 +13,37 @@ def get_db_connection():
         password=os.getenv("POSTGRES_PASSWORD", "benchmark"),
         port=os.getenv("DB_PORT", "5432"),
     )
+
+
+def load_sample_records(source_filter: Optional[str] = None, limit: Optional[int] = None) -> list[dict]:
+    """
+    Loads records from the sample_records table, optionally filtered and randomly sampled.
+
+    Args:
+        source_filter: Optional source string to filter by sample_records.source
+        limit: Optional int to randomly select a subset of records
+
+    Returns:
+        List of JSON-style dicts with 'id' and all content fields.
+    """
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            query = "SELECT id, content FROM sample_records"
+            params = []
+
+            if source_filter:
+                query += " WHERE source = %s"
+                params.append(source_filter)
+
+            query += " ORDER BY RANDOM()"
+            if limit:
+                query += " LIMIT %s"
+                params.append(limit)
+
+            cur.execute(query, tuple(params))
+            rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    return [{"id": str(row[0]), **row[1]} for row in rows]

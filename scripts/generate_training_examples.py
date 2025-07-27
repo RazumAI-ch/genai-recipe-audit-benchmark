@@ -80,7 +80,7 @@ def main():
         input_format = "json" if i % 2 == 0 else "csv"
         input_content = json.dumps(record, ensure_ascii=False) if input_format == "json" else json_to_csv(record)
 
-        # 2. Insert training example
+        # 2. Insert llm_training example
         cur.execute("""
             INSERT INTO training_examples (input_format, input_content)
             VALUES (%s, %s)
