@@ -1,11 +1,11 @@
-# File: scripts/utils/track_lora_progress.py
+# File: train_llms/utils/track_lora_progress.py
 
 import time
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
-log_symlink = Path("../../logs/archivable/llm_training/lora/latest.log")
+log_symlink = Path("../../archive/logs/archivable/llm_training/lora/latest.log")
 pattern = re.compile(r"(\d+)/(\d+) \[\d+:\d+<([\d:]+), [\d.]+s/it\]")
 
 def parse_eta_line(line):

@@ -113,7 +113,7 @@ _copy-latest-db-to-archive:
 
 _archive-latest-logs:
 	@mkdir -p archive
-	@cd logs && zip -r ../archive/logs-archive.zip archivable > /dev/null 2>&1
+	@cd archive/logs && zip -r ../../archive/logs-archive.zip archivable > /dev/null 2>&1
 
 # Training
 
@@ -132,8 +132,8 @@ train-lora-tinyllama: _wait-for-db
 	  python scripts/train_lora/TinyLlamaLoRATrainer.py
 
 tail-lora-log:
-	@while [ ! -f logs/training/lora/latest.log ]; do sleep 1; done
-	@tail -f logs/training/lora/latest.log
+	@while [ ! -f archive/logs/training/lora/latest.log ]; do sleep 1; done
+	@tail -f archive/logs/training/lora/latest.log
 
 track-lora-progress:
 	python3 scripts/utils/track_lora_progress.py

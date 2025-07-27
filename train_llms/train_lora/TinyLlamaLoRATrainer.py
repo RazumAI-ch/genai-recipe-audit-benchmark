@@ -1,6 +1,6 @@
-# File: scripts/train_lora/TinyLlamaLoRATrainer.py
+# File: train_llms/train_lora/TinyLlamaLoRATrainer.py
 
-from scripts.BaseTrainer import BaseTrainer
+from train_llms.BaseTrainer import BaseTrainer
 import os
 import sys
 import torch
@@ -24,6 +24,8 @@ from peft import (
 from trl import SFTTrainer
 from transformers.trainer_utils import get_last_checkpoint
 import transformers.trainer
+from loggers.implementations.training_log_manager import TrainingLogFileManager
+
 transformers.trainer.logger.setLevel("INFO")
 
 
@@ -53,8 +55,9 @@ class TinyLlamaLoRATrainer(BaseTrainer):
         self.merged_output_dir = f"models/merged_llms/{self.base_name}"
         self.merged_archive_path = f"models/merged_llms/_archives/{self.base_name}.tar.gz"
 
-        self.log_path = f"../../logs/archiveable/llm_training/lora/{self.base_name}.log"
-        print(f"📝 Logging to {self.log_path}")
+        self.logger = TrainingLogFileManager(model_name="tinyllama")
+        self.log_path = self.logger.log_path
+
         log_fh = open(self.log_path, "w")
         sys.stdout = sys.stderr = log_fh
 
@@ -145,7 +148,7 @@ class TinyLlamaLoRATrainer(BaseTrainer):
             learning_rate=2e-4,
             bf16=False,
             fp16=False,
-            logging_dir="./logs",
+            logging_dir="../../archive/logs",
             report_to="none",
             gradient_checkpointing=True,
             gradient_checkpointing_kwargs={"use_reentrant": False}

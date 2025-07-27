@@ -28,8 +28,8 @@ training_data/*
 models/*
 
 # Logs and archives
-logs/*
-!logs/.gitkeep
+archive/logs/*
+!archive/logs/.gitkeep
 
 # Backups
 archive/backup/*

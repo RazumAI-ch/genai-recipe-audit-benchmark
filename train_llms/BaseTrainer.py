@@ -1,4 +1,4 @@
-# File: scripts/BaseTrainer.py
+# File: train_llms/BaseTrainer.py
 
 import os
 import platform
@@ -83,7 +83,7 @@ class BaseTrainer:
         return f"{device_type} - {device_name} ({memory_gb} GB), running on {platform_info} ({hostname})"
 
     def symlink_latest_log(self, log_path: str):
-        latest_symlink = Path("../logs/archivable/llm_training/lora/latest.log")
+        latest_symlink = Path("../archive/logs/archivable/llm_training/lora/latest.log")
         target_path = Path(log_path)
 
         try:

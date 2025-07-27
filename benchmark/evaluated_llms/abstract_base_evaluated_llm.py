@@ -1,15 +1,15 @@
-# File: llms/base.py
+# File: benchmark/abstract_base_evaluated_llm.py
 
 from abc import ABC
 from typing import Dict, Any
-from llms.interface import LLMInterface
-from config.keys import SYSTEM_PROMPT, USER_PROMPT, MODEL, BATCH_SIZE
-from config.paths import PATH_CONFIG_PROMPT
+from benchmark.evaluated_llms.interface_llm import EvaluatedLLMInterface
+import benchmark.config.keys
+import benchmark.config.paths
 import yaml
 import json
 
 
-class BaseLLM(LLMInterface, ABC):
+class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
     """
     Abstract base class for all concrete LLMs.
     Handles prompt config loading, model overrides, and shared setup logic.
@@ -26,6 +26,8 @@ class BaseLLM(LLMInterface, ABC):
         self.user_prompt_prefix = ""
         self.model = None
         self.batch_size = None
+        self.temperature = benchmark.config.keys.LLM_TEMPERATURE
+        self.max_tokens = benchmark.config.keys.LLM_MAX_TOKENS_DEFAULT
 
     def prepare(self, overrides: Dict[str, Any] = None):
         """
@@ -36,18 +38,26 @@ class BaseLLM(LLMInterface, ABC):
         in the original model_config (e.g., to change model version dynamically).
         """
         self.prompt_config = self._load_prompt_config()
-        self.system_prompt = self.prompt_config.get(SYSTEM_PROMPT, "")
-        self.user_prompt_prefix = self.prompt_config.get(USER_PROMPT, "")
+        self.system_prompt = self.prompt_config.get(benchmark.config.keys.SYSTEM_PROMPT, "")
+        self.user_prompt_prefix = self.prompt_config.get(benchmark.config.keys.USER_PROMPT, "")
 
         # Merge in runtime overrides
         if overrides:
             self.model_config.update(overrides)
 
         # Required fields — fail fast if missing
-        self.model = self.model_config[MODEL]
-        self.batch_size = self.model_config[BATCH_SIZE]
+        self.model = self.model_config[benchmark.config.keys.MODEL]
+        self.batch_size = self.model_config.get(benchmark.config.keys.BATCH_SIZE, 10)
 
-    def _load_prompt_config(self, path: str = PATH_CONFIG_PROMPT) -> dict:
+    @classmethod
+    def get_model_key(cls) -> str:
+        if not hasattr(cls, "ModelKey") or not cls.ModelKey:
+            raise ValueError(f"{cls.__name__} must define a static 'ModelKey'.")
+        return cls.ModelKey
+
+
+    @staticmethod
+    def _load_prompt_config(path: str = benchmark.config.paths.PATH_CONFIG_PROMPT) -> dict:
         """
         Load system and user prompts from the YAML config file.
         Used to provide consistent prompting across models.
@@ -59,8 +69,8 @@ class BaseLLM(LLMInterface, ABC):
         """
         Construct a prompt from the user prompt prefix and JSON-formatted record.
 
-        This can be overridden by subclasses if a model requires
-        special formatting, wrapping, or multi-step inputs.
+        Subclasses can override this if a model requires
+        special formatting, wrapping, or multistep inputs.
         """
         return f"{self.user_prompt_prefix}\n{json.dumps(record['content'])}"
 
@@ -80,3 +90,16 @@ class BaseLLM(LLMInterface, ABC):
             "Recipe data:\n"
             f"{json.dumps(record, indent=2, sort_keys=True)}"
         )
+
+    def get_prompts(self) -> Dict[str, str]:
+        """
+        Returns both system and user prompt strings.
+        Useful for inspection, testing, or logging.
+        """
+        return {
+            "system_prompt": self.system_prompt,
+            "user_prompt": self.user_prompt_prefix
+        }
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} model={self.model}>"

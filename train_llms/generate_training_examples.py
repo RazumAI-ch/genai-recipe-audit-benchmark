@@ -1,4 +1,4 @@
-# File: scripts/generate_training_examples.py
+# File: train_llms/generate_training_examples.py
 
 import os
 import json

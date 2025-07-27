@@ -1,14 +1,18 @@
-# File: llms/interface.py
+# File: benchmark/interface_llm.py
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
 import yaml
 
-class LLMInterface(ABC):
+class EvaluatedLLMInterface(ABC):
     """
     Abstract interface for all LLM implementations.
     Handles config loading and enforces prepare + batch eval contract.
     """
+
+    # Defines LLM Model
+    ModelKey: str
+
 
     def __init__(self, config_path: str):
         self.model_config = self._load_config(config_path)
@@ -27,6 +31,13 @@ class LLMInterface(ABC):
         Allows optional runtime overrides (e.g., model version or batch size).
         """
         pass
+
+
+    @classmethod
+    @abstractmethod
+    def get_model_key(cls) -> str:
+        pass
+
 
     @abstractmethod
     def evaluate(self, records: List[Dict], context_prefix: str = "") -> List[Dict]:
