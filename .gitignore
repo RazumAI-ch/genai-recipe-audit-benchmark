@@ -24,8 +24,14 @@ __pycache__/
 # Training Data
 training_data/*
 
-# Models
+# Model outputs (LoRA, fine-tuned, downloaded, etc.)
 models/*
+!models/.gitkeep
+
+# Ignore archives
+*.tar.gz
+*.pt
+*.safetensors
 
 # Logs and archives
 archive/logs/*

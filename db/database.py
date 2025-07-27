@@ -6,13 +6,36 @@ from typing import Optional
 
 
 def get_db_connection():
-    return psycopg2.connect(
-        host=os.getenv("DB_HOST", "db"),
-        dbname=os.getenv("POSTGRES_DB", "benchmarkdb"),
-        user=os.getenv("POSTGRES_USER", "benchmark_user"),
-        password=os.getenv("POSTGRES_PASSWORD", "benchmark_user_password"),
-        port=os.getenv("DB_PORT", "5432"),
-    )
+    """
+    Establish a PostgreSQL connection using environment variables.
+
+    Environment variables expected (set via .env or Docker):
+    - DB_HOST
+    - POSTGRES_DB
+    - POSTGRES_USER
+    - POSTGRES_PASSWORD
+    - DB_PORT
+
+    Raises:
+        RuntimeError if any required variable is missing.
+
+    Returns:
+        psycopg2 connection object
+    """
+    required_vars = ["DB_HOST", "POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "DB_PORT"]
+    missing = [var for var in required_vars if os.getenv(var) is None]
+    if missing:
+        raise RuntimeError(f"Missing required DB environment variables: {', '.join(missing)}")
+
+    db_config = {
+        "host": os.getenv("DB_HOST"),
+        "dbname": os.getenv("POSTGRES_DB"),
+        "user": os.getenv("POSTGRES_USER"),
+        "password": os.getenv("POSTGRES_PASSWORD"),
+        "port": os.getenv("DB_PORT"),
+    }
+
+    return psycopg2.connect(**db_config)
 
 
 def load_sample_records(source_filter: Optional[str] = None, limit: Optional[int] = None) -> list[dict]:
