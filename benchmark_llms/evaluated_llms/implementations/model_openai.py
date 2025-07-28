@@ -5,8 +5,8 @@ from typing import List, Dict
 
 import config.paths
 from benchmark_llms.evaluated_llms.abstract_proprietary_evaluated_llm import ProprietaryEvaluatedLLM
-from loggers.implementations.benchmark_log_manager import BenchmarkLogFileManager
 import config.keys
+
 
 class OpenAIModel(ProprietaryEvaluatedLLM):
     """
@@ -18,19 +18,14 @@ class OpenAIModel(ProprietaryEvaluatedLLM):
 
     def __init__(self):
         super().__init__(config.paths.PATH_CONFIG_OPENAI)
-        self.logger = BenchmarkLogFileManager(self.get_model_key())  # Instantiate once
 
-    def evaluate(self, records: List[Dict]) -> Dict:
-        self.prepare()
-
+    def _run_model_inference(self, records: list[dict]) -> str:
+        import openai
         client = openai.OpenAI(api_key=self.api_key)
 
-        user_prompt = self.build_full_prompt(records)
-        system_prompt = self.system_prompt
-
-        messages: List[Dict[str, str]] = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
+        messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": self.build_full_prompt(records)},
         ]
 
         response = client.chat.completions.create(
@@ -40,9 +35,4 @@ class OpenAIModel(ProprietaryEvaluatedLLM):
             max_tokens=self.max_tokens,
         )
 
-        raw_content = response.choices[0].message.content or ""
-        content = raw_content.strip()
-
-        self.logger.write_log(suffix="response", content=content)  # Use the instance logger
-
-        return self.parse_model_response(content)
+        return (response.choices[0].message.content or "").strip()

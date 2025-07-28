@@ -5,8 +5,8 @@ import datetime
 import zoneinfo
 import typing
 import abc
-import json
 import config.paths
+import config.keys
 
 
 class AbstractLogFileManager(abc.ABC):
@@ -56,7 +56,7 @@ class AbstractLogFileManager(abc.ABC):
                 key=lambda f: os.path.getmtime(os.path.join(self.LOG_FOLDER_PATH, f)),
                 reverse=True
             )
-            for f in files_sorted[5:]:
+            for f in files_sorted[config.keys.LOG_HISTORY_SIZE:]:
                 try:
                     os.remove(os.path.join(self.LOG_FOLDER_PATH, f))
                 except Exception as e:
@@ -64,19 +64,36 @@ class AbstractLogFileManager(abc.ABC):
         except Exception as outer_e:
             print(f"[ERROR] Could not list or process log folder: {self.LOG_FOLDER_PATH} - {outer_e}")
 
-    def write_log(self, suffix: str, content: typing.Union[str, dict]) -> str:
+    def write_log(self, suffix: str, content: typing.Any) -> str:
         """
-        Write log content to a timestamped file in the log folder.
-        Format: <timestamp>_<model_name>_<suffix>.json
+        Full logging pipeline:
+        - Gets timestamp
+        - Builds filename
+        - Writes formatted content
+        - Returns written file path
         """
         self.ensure_log_dir()
         timestamp = self.create_timestamp()
-        filename = os.path.join(self.LOG_FOLDER_PATH, f"{timestamp}_{self._model_subfolder}_{suffix}.json")
+        filename = os.path.join(
+            self.LOG_FOLDER_PATH,
+            f"{timestamp}_{self._model_subfolder}_{suffix}{self.get_extension()}"
+        )
 
         with open(filename, "w", encoding="utf-8") as f:
-            if isinstance(content, dict):
-                json.dump(content, f, indent=2)
-            else:
-                f.write(str(content))
+            f.write(self.format_log_content(content))
 
         return filename
+
+    @abc.abstractmethod
+    def format_log_content(self, content: typing.Any) -> str:
+        """
+        Must be implemented by subclasses to return string-formatted content.
+        """
+        pass
+
+    def get_extension(self) -> str:
+        """
+        Optional override: return file extension (e.g., '.json', '.log').
+        Default is '.log'.
+        """
+        return ".log"

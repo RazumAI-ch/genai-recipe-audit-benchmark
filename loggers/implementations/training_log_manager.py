@@ -10,4 +10,4 @@ class TrainingLogFileManager(AbstractLogFileManager):
         archive/logs/ephemeral/debug/training/<model_name>/
     """
     def __init__(self, model_name: str):
-        super().__init__(context_folder="training", subfolder_name=model_name)
+        super().__init__(context_folder="training_llms", subfolder_name=model_name)
