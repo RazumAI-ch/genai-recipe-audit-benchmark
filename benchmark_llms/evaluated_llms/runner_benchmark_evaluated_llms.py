@@ -1,6 +1,6 @@
 # File: benchmark_llms/runner_benchmark_evaluated_llms.py
 
-import db.database
+import db.utils.load_sample_records
 from benchmark_llms.evaluated_llms.factory_evaluated_llms import FactoryEvaluatedLLMs
 
 
@@ -14,7 +14,7 @@ class RunnerBenchmarkEvaluatedLLMs:
         self.factory = FactoryEvaluatedLLMs()
 
     def run_benchmark(self, max_records: int = None) -> None:
-        sample_records = db.database.load_sample_records(limit=max_records)
+        sample_records = db.utils.load_sample_records.load_sample_records(limit=max_records)
         total_records = len(sample_records)
 
         for model_name, model_class in self.factory.get_enabled_models().items():

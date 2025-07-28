@@ -1,6 +1,7 @@
 # File: db/psqldb_sequences.py
 
-from db.database import get_db_connection
+from db.core.connection import get_db_connection
+
 
 def get_sequence_mismatches() -> list[dict]:
     """

@@ -1,7 +1,8 @@
 # File: utils/prompt_helpers.py
 
 import psycopg2.extras
-from db.database import get_db_connection
+from db.core.connection import get_db_connection
+
 
 def get_deviation_section_from_db() -> str:
     """

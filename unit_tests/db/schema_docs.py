@@ -1,6 +1,7 @@
 # File: unit_tests/db/schema_docs.py
 
-from db.database import get_db_connection
+from db.core.connection import get_db_connection
+
 
 def get_all_columns() -> set[tuple[str, str]]:
     """
