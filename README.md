@@ -1,97 +1,6 @@
 # 🧪 GenAI Recipe Audit Benchmark
 
-Benchmarking GenAI Models for GxP Pharmaceutical Recipe Auditing.
-
-We evaluate how well each individual language model performs in detecting, classifying, and explaining GxP-relevant deviations in structured pharmaceutical manufacturing recipes. All models are tested on the same tasks, using identical prompts and evaluation logic, allowing direct comparison of their performance, cost, and reliability.
-
----
-
-### 🏢 Proprietary Models (API-Based Inference Only)
-
-These commercial LLMs are accessed via API and evaluated without any retraining:
-
-- **OpenAI GPT-4o**
-- **Claude Opus**
-- **Gemini 1.5 Pro**
-
-Planned future additions include:
-
-- **Anthropic Claude 3.5 Sonnet**
-- **Cohere Command R+**
-- **xAI Grok**
-- **Mistral API models (as released)**
-
----
-
-### 🧠 Open-Source Models (Inference Only)
-
-We will benchmark the following open models for out-of-the-box performance on GxP1–2 tasks:
-
-- **LLaMA-3 8B / 70B**
-- **Mixtral 8x7B**
-- **Gemma 2B / 7B**
-- **Phi-2**
-- **Qwen 1.5 14B / 72B / 110B**
-- **Yi-6B / Yi-34B**
-- **Mistral 7B Instruct**
-- **Command R / R+ (open variants)**
-- **TinyLlama 1.1B**
-- **LLaMA-3 400B / 460B** *(for future inference runs)*
-
----
-
-### 🧪 Planned LoRA-Tuned Models
-
-The following open models are selected for **LoRA fine-tuning** based on practical feasibility under current resource constraints. They strike a balance between performance and retraining cost:
-
-- **TinyLlama 1.1B** *(already trained)*
-- **Phi-2**
-- **Gemma 2B / 7B**
-- **Qwen 7B / 14B**
-- **Yi 6B / 34B**
-- **Mistral 7B**
-- **Mixtral 8x7B**
-
-These will be fine-tuned using 10k+ annotated records to specialize in GxP1 and GxP2 detection and classification.
-
----
-
-### 🧬 Planned Full Retraining (Selective)
-
-Full retraining is resource-intensive and will be limited to a small number of models:
-
-- **TinyLlama 1.1B** *(baseline completed)*
-- **Phi-2**
-- Possibly: **Qwen 7B** or **Yi 6B**
-
-These runs will be reserved for future large-scale experiments using dedicated cloud GPU instances or high-memory nodes.
-
----
-
-## 📋 GxP Benchmark Overview
-
-This project provides an end-to-end benchmark to evaluate how well generative AI models identify **GxP-relevant deviations** in pharmaceutical manufacturing recipes. Our focus is on six scoring dimensions:
-
-| Score     | Scope                                                | Availability  |
-|-----------|------------------------------------------------------|---------------|
-| **GxP1**  | ALCOA+ violation identification                      | ✅ Open source |
-| **GxP2**  | ALCOA+ violation classification                      | ✅ Open source |
-| **GxP3**  | Recipe logic consistency deviation identification    | 🔒 Commercial  |
-| **GxP4**  | Recipe logic consistency deviation classification    | 🔒 Commercial  |
-| **GxP5**  | Execution trace deviation identification             | 🔒 Commercial  |
-| **GxP6**  | Execution trace deviation classification             | 🔒 Commercial  |
-
-GxP1–2 are part of the open benchmark. GxP3–6 require access to proprietary process logic and execution logs, and are offered commercially.
-
----
-
-## 🔧 Capabilities
-
-- ✅ Generate **synthetic recipe samples** with injected, documented ALCOA+ deviations (2% of records)
-- ✅ Evaluate across top LLMs (OpenAI, Claude, Gemini, Mistral, etc.)
-- ✅ Benchmark both open and fine-tuned models
-- ✅ Score detection and classification performance per model
-- ✅ Fully reproducible with Docker + PostgreSQL + Makefile
+A reproducible benchmark for evaluating how well large language models identify, classify, and explain GxP-relevant deviations in pharmaceutical manufacturing recipes. Designed for regulatory-grade infrastructure auditing with both proprietary and open models.
 
 ---
 
@@ -104,99 +13,133 @@ GxP1–2 are part of the open benchmark. GxP3–6 require access to proprietary 
 
 ---
 
-## 📂 Project Structure
+## 🔧 Capabilities
 
-```
-genai-recipe-audit-benchmark/
-├── benchmark/     # Core scoring logic and run orchestration
-├── config/        # Prompt templates and pricing info
-├── db/            # PostgreSQL schema + seed data
-├── docs/          # CLI usage, methodology, and examples
-├── llms/          # LLM wrappers (OpenAI, Claude, etc.)
-├── models/        # Trained LoRA adapters and fine-tuned models
-├── scripts/       # Synthetic data generation and training tools
-├── tests/         # Unit and integration tests
-└── main.py        # Benchmark entry point
-```
+- Generate synthetic recipe samples with injected, documented ALCOA+ deviations (2% of records)
+- Evaluate across top LLMs (OpenAI, Claude, Gemini, Mistral, etc.)
+- Benchmark both open and fine-tuned models
+- Score detection and classification performance per model
+- Fully reproducible with Docker + PostgreSQL + Makefile
 
 ---
 
-## 🚀 Run Locally
+## 📋 GxP Benchmark Overview
 
-```bash
-docker-compose up -d
-make setup-db
-python main.py
-```
+This project provides an end-to-end benchmark to evaluate how well generative AI models identify GxP-relevant deviations in pharmaceutical manufacturing recipes. Our focus is on six scoring dimensions:
 
----
-
-## 🧠 LoRA and Full Fine-Tuning
-
-Our training dataset consists of 10,000 structured records annotated with ALCOA+ deviation types. Fine-tuning is optimized for the **GxP1** and **GxP2** tasks.
-
-Training runs are:
-- Logged with metadata (time, accuracy, loss, token count)
-- Executed via **RunPod**, **AWS**, **Vultr**, or **local hardware**
-- Archived with timestamped folders and `.tar.gz` snapshots
-
----
-
-## 🧪 Benchmark Configuration
-
-Defined in:
-
-- `config/prompts.yaml`: Unified prompt across all models
-- `config/model_pricing.yaml`: Token-based cost tracking
-
-Design includes:
-
-- Same prompt for all models
-- Structured JSON output
-- Normalized scoring [0–1]
-- Control datasets (100% clean or 100% faulty)
+| Score     | Scope                                                | Availability  |
+|-----------|------------------------------------------------------|---------------|
+| **GxP1**  | ALCOA+ violation identification                      | ✅ Open source |
+| **GxP2**  | ALCOA+ violation classification                      | ✅ Open source |
+| **GxP3**  | Recipe logic consistency deviation identification    | 🔒 Commercial  |
+| **GxP4**  | Recipe logic consistency deviation classification    | 🔒 Commercial  |
+| **GxP5**  | Execution trace deviation identification             | 🔒 Commercial  |
+| **GxP6**  | Execution trace deviation classification             | 🔒 Commercial  |
 
 ---
 
 ## 📊 GxP1 & GxP2 Scoring Explained
 
 The benchmark dataset is synthetically generated in a controlled way. We know exactly:
+
 - Which records are clean
 - Which records contain deviations
 - Which specific deviation types were injected into which records
 
-There are **30 deviation types** used to classify issues:
+There are 30 deviation types including:
 
-1. Missing quantity  
-2. Invalid timestamp format  
-3. Future timestamp  
-4. Timestamp out of sequence  
-5. Invalid status code  
-6. Placeholder text in notes  
-7. Empty notes field  
-8. Overwritten field without comment  
-9. Missing operator ID  
-10. Invalid operator ID format  
-11. Operator mismatch  
-12. Duplicate record ID  
-13. Negative quantity  
-14. Unexpected material usage  
-15. Inconsistent unit of measure  
-16. Reused batch number  
-17. Non-GMP-compliant free text  
-18. Timestamp with wrong timezone  
-19. Redundant step  
-20. Out-of-spec temperature  
-21. Out-of-spec duration  
-22. Unexpected step order  
-23. Missing environmental condition  
-24. Extra field not in schema  
-25. Misspelled field name  
-26. Unauthorized user entry  
-27. Data recorded before step start  
-28. Data recorded after step end  
-29. Zero duration  
-30. Invalid equipment ID
+- Missing quantity  
+- Invalid timestamp format  
+- Placeholder text  
+- Out-of-sequence steps  
+- Unauthorized entries  
+- Invalid equipment IDs
+
+Full list available in `config/deviation_types.csv`.
+
+---
+
+## 📂 Project Structure
+
+```
+genai-recipe-audit-benchmark/
+├── archive/         # Backups of DB and logs
+├── benchmark_llms/  # Core benchmark runner and scoring logic
+├── config/          # Prompt templates and LLM pricing
+├── db/              # Production DB access layer
+├── docs/            # Usage and methodology
+├── llms/            # LLM wrappers (API, open, and retrained)
+├── loggers/         # Structured log generation for benchmarks/tests
+├── models/          # Saved LoRA adapter folders and full retrain outputs
+├── public_assets/   # Public media, reports, or charts
+├── train_llms/      # Training logic (LoRA or full)
+├── unit_tests/      # Unit test runner and test-only DB access
+├── main.py          # Benchmark entry point
+├── Makefile         # Unified execution interface
+├── requirements.txt # Python dependencies
+```
+
+---
+
+## 🧠 LLM Integration
+
+### Proprietary Models (API-Based Inference Only)
+
+- OpenAI GPT-4o
+- Claude Opus
+- Gemini 1.5 Pro
+
+Planned:
+- Claude 3.5 Sonnet
+- Cohere Command R+
+- xAI Grok
+- Mistral API models
+
+### Open-Source Models (Inference Only)
+
+- LLaMA-3 8B / 70B
+- Mixtral 8x7B
+- Gemma 2B / 7B
+- Phi-2
+- Qwen 1.5 14B / 72B / 110B
+- Yi-6B / Yi-34B
+- Mistral 7B Instruct
+- Command R / R+ (open)
+- TinyLlama 1.1B
+- LLaMA-3 400B / 460B (planned)
+
+### LoRA-Tuned Models
+
+- TinyLlama 1.1B (already trained)
+- Phi-2
+- Gemma 2B / 7B
+- Qwen 7B / 14B
+- Yi 6B / 34B
+- Mistral 7B
+- Mixtral 8x7B
+
+### Full Retraining (Selective)
+
+- TinyLlama 1.1B (baseline done)
+- Phi-2
+- Possibly: Qwen 7B or Yi 6B
+
+---
+
+## 🎓 Testing & DB Validation
+
+This project includes a suite of unit tests to validate infrastructure health, schema alignment, and data quality. These include:
+
+- `schema_docs_sync`: Ensures all DB columns are documented in `schema_docs`
+- `psqldb_sequences`: Validates that all sequences are synchronized with `MAX(id) + 1`
+
+Run tests with:
+
+```bash
+make _run-unit-tests
+```
+
+All results are logged to timestamped files.
 
 ---
 
@@ -210,22 +153,45 @@ All benchmarks track:
 
 ---
 
-## 🚚 Deployment Roadmap
+## 🚀 Run Locally
 
-- ✅ CLI-based execution (Docker + PostgreSQL)
-- 🔜 Web-based interface for running benchmarks and viewing results
+```bash
+docker-compose up -d
+make setup-db
+python main.py
+```
+
+---
+
+## 🛠 Tech Stack
+
+### Core Language
+- Python 3.11
+
+### Database
+- PostgreSQL 15
+- SQLAlchemy (ORM layer)
+- Psycopg2 (direct SQL access)
+
+### Deployment & Orchestration
+- Docker
+- Makefile
+
+### LLM Integration
+- OpenAI, Claude, Gemini (API-based proprietary models)
+- TinyLlama 1.1B (LoRA fine-tuned open model)
 
 ---
 
 ## 📑 Licensing & Reuse
 
 - GxP1 and GxP2 logic is fully open-source
-- GxP3–6 are commercial due to proprietary logic and trace requirements
+- GxP3–6 logic is commercial due to proprietary execution trace data
 
 ---
 
 ## 🏁 Final Notes
 
-- 📢 Prompts and deviation types are tied to ALCOA+ principles
-- 🔍 Each deviation includes rationale for GxP non-compliance
-- 🔄 Benchmark is fully automatable and extensible for future LLMs
+- All deviation types are explicitly tied to ALCOA+ principles
+- Benchmark is reproducible, automatable, and extensible
+- Unit tests enforce schema documentation and DB integrity prior to benchmark execution
