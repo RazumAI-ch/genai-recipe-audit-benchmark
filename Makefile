@@ -4,7 +4,7 @@
 # ============================================
 
 # Schema Versioning
-SCHEMA_VERSION ?= v1.4
+SCHEMA_VERSION = v1.5
 
 # Ensuring .env variables are available in makefile
 include .env
