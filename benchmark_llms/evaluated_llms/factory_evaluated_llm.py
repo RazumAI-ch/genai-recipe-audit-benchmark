@@ -43,30 +43,3 @@ class EvaluatedLLMFactory:
         model = model_class()
         model.prepare(overrides=overrides)
         return model
-
-    def run_benchmark(self, max_records: int = None):
-        """
-        Loads sample records and evaluates them using all enabled models.
-        Prints a summary of the results for each model.
-        """
-        sample_records = db.database.load_sample_records(limit=max_records)
-        total_records = len(sample_records)
-
-        for model_name, model_class in self.get_enabled_models().items():
-            print(f"\nLoading model: {model_name}")
-            model = model_class()
-
-            try:
-                model.prepare()
-                print(f"Sending {total_records} records for audit...")
-                model_output = model.evaluate(sample_records)
-            except Exception as e:
-                print(f"Evaluation failed for {model_name}: {e}")
-                continue
-
-            audited_records = model_output.get("records", [])
-            records_with_deviations = [r for r in audited_records if r.get("deviations")]
-
-            print(f"Summary for {model_name}:")
-            print(f"- Records sent for audit: {total_records}")
-            print(f"- Records with deviations: {len(records_with_deviations)}\n")

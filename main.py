@@ -1,11 +1,14 @@
 # File: main.py
 
 import sys
-from benchmark_llms.evaluated_llms.factory_evaluated_llm import EvaluatedLLMFactory
+from benchmark_llms.evaluated_llms.runner_benchmark_evaluated_llm import BenchmarkEvaluatedLLMRunner
 
 def run_benchmark(max_records):
-    factory = EvaluatedLLMFactory()
-    factory.run_benchmark(max_records=max_records)
+    # factory = EvaluatedLLMFactory()
+    # factory.run_benchmark(max_records=max_records)
+
+    runner = BenchmarkEvaluatedLLMRunner()
+    runner.run_benchmark(max_records=max_records)
 
 if __name__ == "__main__":
     import argparse
