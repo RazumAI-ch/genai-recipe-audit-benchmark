@@ -6,7 +6,7 @@ import zoneinfo
 import typing
 import abc
 import json
-import benchmark_llms.config.paths
+import config.paths
 
 
 class AbstractLogFileManager(abc.ABC):
@@ -28,7 +28,7 @@ class AbstractLogFileManager(abc.ABC):
         self._context_folder = context_folder
         self._model_subfolder = subfolder_name
         self.LOG_FOLDER_PATH = os.path.join(
-            benchmark_llms.config.paths.PATH_LOGS_DEBUG,
+            config.paths.PATH_LOGS_DEBUG,
             self._context_folder,
             self._model_subfolder
         )

@@ -2,15 +2,15 @@
 # Benchmark LLM Configuration
 # ============================
 
-PATH_CONFIG_BENCHMARK_BASE = "benchmark_llms/config"
+PATH_CONFIG_BENCHMARK_BASE = "config"
 
 # Prompt configuration (used for all benchmark_llms LLMs)
 PATH_CONFIG_PROMPT = f"{PATH_CONFIG_BENCHMARK_BASE}/prompts.yaml"
 
 # Individual LLM model configs
-PATH_CONFIG_OPENAI = f"{PATH_CONFIG_BENCHMARK_BASE}/llm_configs/openai.yaml"
-# PATH_CONFIG_CLAUDE = f"{PATH_CONFIG_BENCHMARK_BASE}/llm_configs/claude.yaml"
-# PATH_CONFIG_GEMINI = f"{PATH_CONFIG_BENCHMARK_BASE}/llm_configs/gemini.yaml"
+PATH_CONFIG_OPENAI = f"{PATH_CONFIG_BENCHMARK_BASE}/evaluated_llm_configs/openai.yaml"
+# PATH_CONFIG_CLAUDE = f"{PATH_CONFIG_BENCHMARK_BASE}/evaluated_llm_configs/claude.yaml"
+# PATH_CONFIG_GEMINI = f"{PATH_CONFIG_BENCHMARK_BASE}/evaluated_llm_configs/gemini.yaml"
 
 
 # ============================
@@ -18,7 +18,7 @@ PATH_CONFIG_OPENAI = f"{PATH_CONFIG_BENCHMARK_BASE}/llm_configs/openai.yaml"
 # ============================
 
 # Root log path (relative to project root)
-PATH_LOGS = "../../archive/logs"
+PATH_LOGS = "archive/logs"
 
 # Archivable logs (persisted long-term)
 PATH_LOGS_ARCHIVABLE = f"{PATH_LOGS}/archivable"

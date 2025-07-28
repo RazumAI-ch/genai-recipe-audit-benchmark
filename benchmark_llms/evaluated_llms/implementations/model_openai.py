@@ -3,10 +3,10 @@
 import openai
 from typing import List, Dict
 
-import benchmark_llms.config.paths
+import config.paths
 from benchmark_llms.evaluated_llms.abstract_proprietary_evaluated_llm import ProprietaryEvaluatedLLM
 from loggers.implementations.benchmark_log_manager import BenchmarkLogFileManager
-import benchmark_llms.config.keys
+import config.keys
 
 class OpenAIModel(ProprietaryEvaluatedLLM):
     """
@@ -14,10 +14,10 @@ class OpenAIModel(ProprietaryEvaluatedLLM):
     Uses the shared ProprietaryEvaluatedLLM base for config, API key loading, and response parsing.
     """
 
-    ModelKey = benchmark_llms.config.keys.OPENAI_GPT_4O
+    ModelKey = config.keys.OPENAI_GPT_4O
 
     def __init__(self):
-        super().__init__(benchmark_llms.config.paths.PATH_CONFIG_OPENAI)
+        super().__init__(config.paths.PATH_CONFIG_OPENAI)
         self.logger = BenchmarkLogFileManager(self.get_model_key())  # Instantiate once
 
     def evaluate(self, records: List[Dict]) -> Dict:

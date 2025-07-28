@@ -2,11 +2,11 @@
 
 import typing
 import db.database
-import benchmark_llms.config.keys
+import config.keys
 from benchmark_llms.evaluated_llms.implementations.model_openai import OpenAIModel
 
 # Define which models are currently enabled for evaluation
-ENABLED_MODELS = benchmark_llms.config.keys.ENABLED_BENCHMARK_MODELS
+ENABLED_MODELS = config.keys.ENABLED_BENCHMARK_MODELS
 
 # Registry of all known models mapped to their implementation class
 MODEL_REGISTRY = {

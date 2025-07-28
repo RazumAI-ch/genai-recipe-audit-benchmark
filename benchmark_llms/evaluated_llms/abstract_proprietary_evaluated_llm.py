@@ -5,7 +5,7 @@ from abc import ABC
 import json
 from benchmark_llms.evaluated_llms.abstract_base_evaluated_llm import BaseEvaluatedLLM
 import benchmark_llms.utils.utils as utils
-from benchmark_llms.config.keys import API_KEY_ENV
+from config.keys import API_KEY_ENV
 
 
 class ProprietaryEvaluatedLLM(BaseEvaluatedLLM, ABC):
