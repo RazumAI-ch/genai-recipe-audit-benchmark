@@ -6,17 +6,17 @@ import inspect
 from typing import Type, Dict, List
 
 import config.keys_unit_tests as config_keys_unit_tests
-from unit_tests.interface_unit_test import UnitTestInterface
+from unit_tests.abstract_unit_test import AbstractUnitTest
 
 ENABLED_UNIT_TESTS = config_keys_unit_tests.ENABLED_UNIT_TESTS
-UNIT_TEST_REGISTRY: Dict[str, Type[UnitTestInterface]] = {}
+UNIT_TEST_REGISTRY: Dict[str, Type[AbstractUnitTest]] = {}
 
 
 def _load_unit_test_implementations():
     """
     Loads all unit test implementations from benchmark_unit_tests and training_unit_tests folders.
     Registers classes that:
-    - Subclass UnitTestInterface
+    - Subclass AbstractUnitTest
     - Are not abstract
     - Define a static/class field KEY
     """
@@ -43,9 +43,9 @@ def _load_unit_test_implementations():
             spec.loader.exec_module(module)
 
             for _, cls in inspect.getmembers(module, inspect.isclass):
-                if cls is UnitTestInterface:
+                if cls is AbstractUnitTest:
                     continue
-                if not issubclass(cls, UnitTestInterface):
+                if not issubclass(cls, AbstractUnitTest):
                     continue
                 if inspect.isabstract(cls):
                     continue
@@ -65,10 +65,10 @@ class FactoryUnitTests:
     """
 
     def __init__(self):
-        self.unit_test_registry: Dict[str, Type[UnitTestInterface]] = UNIT_TEST_REGISTRY
+        self.unit_test_registry: Dict[str, Type[AbstractUnitTest]] = UNIT_TEST_REGISTRY
         self.enabled_unit_tests = ENABLED_UNIT_TESTS
 
-    def get_enabled_tests(self) -> List[UnitTestInterface]:
+    def get_enabled_tests(self) -> List[AbstractUnitTest]:
         """
         Returns a list of instantiated unit tests from the registry, limited to those marked as enabled.
         """

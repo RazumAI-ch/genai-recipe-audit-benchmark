@@ -5,6 +5,7 @@
 # ============================
 
 UNIT_TEST_SCHEMA_DOCS_SYNC = "schema_docs_sync"
+UNIT_TEST_PSQLDB_SEQUENCES = "psqldb_sequences"
 
 # ============================
 # Enabled Unit Tests
@@ -12,4 +13,5 @@ UNIT_TEST_SCHEMA_DOCS_SYNC = "schema_docs_sync"
 
 ENABLED_UNIT_TESTS = {
     UNIT_TEST_SCHEMA_DOCS_SYNC,
+    UNIT_TEST_PSQLDB_SEQUENCES,
 }

@@ -70,3 +70,4 @@ def load_sample_records(source_filter: Optional[str] = None, limit: Optional[int
         conn.close()
 
     return [{"id": str(row[0]), **row[1]} for row in rows]
+

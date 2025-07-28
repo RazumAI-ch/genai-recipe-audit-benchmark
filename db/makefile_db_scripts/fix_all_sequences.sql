@@ -1,17 +1,17 @@
 -- File: fix_all_sequences.sql
--- Purpose: Automatically reset all sequences to match max(id) per table
+-- Purpose: Automatically reset all sequences to match max(id) + 1 per table
 --
--- 🛠 Why this is needed:
+-- Why this is needed:
 -- When restoring the database from a backup (e.g., via `make backup-db`),
 -- PostgreSQL does not automatically sync sequences (like sample_records_id_seq)
 -- to reflect the current data in the table. This can lead to "duplicate key"
 -- errors on insert if a sequence is still pointing to an ID that already exists.
 --
 -- This script loops over all sequences in the database and resets each one
--- to the maximum existing ID in the corresponding table (or 1 if empty).
+-- to MAX(id) + 1, or 1 if the table is empty.
 --
--- 📦 This file is executed automatically during `make backup-db`
--- as part of the `fix-sequences` Makefile target.
+-- This file is executed automatically during `make backup-db`
+-- as part of the `_fix-sequences` Makefile target.
 
 DO $$
 DECLARE
@@ -29,7 +29,7 @@ BEGIN
     WHERE c.relkind = 'S'
   LOOP
     EXECUTE format(
-      'SELECT setval(%L, COALESCE(MAX(%I), 1)) FROM %I;',
+      'SELECT setval(%L, COALESCE(MAX(%I), 0) + 1, false) FROM %I;',
       r.seq_name, r.column_name, r.table_name
     );
   END LOOP;

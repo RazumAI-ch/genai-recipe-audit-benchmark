@@ -16,7 +16,7 @@ export
 
 NUM=$(word 2,$(MAKECMDGOALS))
 
-run: _clear
+run: _clear _run-unit-tests
 	docker-compose run --remove-orphans cli python main.py $(NUM)
 
 # ============================================
@@ -30,7 +30,7 @@ psql:
 # PostgreSQL Container Lifecycle
 # ============================================
 
-backup-db: _clear _refresh-schema-docs _save-to-backup-file _copy-latest-db-to-archive _archive-latest-logs
+backup-db: _clear _run-unit-tests _refresh-schema-docs _save-to-backup-file _copy-latest-db-to-archive _archive-latest-logs
 	@echo "Resetting DB and restoring schema..."
 	@$(MAKE) _recreate_empty_db
 	@$(MAKE) _import-from-archive
@@ -181,6 +181,16 @@ check-training-llm-sources:
 	psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "\
 	SELECT id, source_llm FROM training_examples ORDER BY id DESC LIMIT 10;"
 
+
+# ============================================
+# Unit Testing
+# ============================================
+
+_run-unit-tests:
+	@echo "Running all unit tests..."
+	docker-compose run --rm --remove-orphans cli python unit_tests/runner_unit_tests.py
+
+
 # ============================================
 # Utils
 # ============================================
@@ -200,4 +210,4 @@ _clear:
         check-training-llm-sources import-db-adhoc _clear \
         _wait-for-db _recreate_empty_db _save-to-backup-file _import-from-archive \
         _refresh-schema-docs _sort-schema-docs _fix-sequences _show-db-stats \
-        _copy-latest-db-to-archive _archive-latest-logs
+        _copy-latest-db-to-archive _archive-latest-logs _run-unit-tests
