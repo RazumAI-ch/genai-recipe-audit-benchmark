@@ -5,7 +5,7 @@ import datetime
 import zoneinfo
 import typing
 import abc
-import config.paths
+import config.paths as config_paths
 import config.keys_evaluated_llms as config_keys_evaluated_llms
 
 
@@ -28,7 +28,7 @@ class AbstractLogFileManager(abc.ABC):
         self._context_folder = context_folder
         self._model_subfolder = subfolder_name
         self.LOG_FOLDER_PATH = os.path.join(
-            config.paths.PATH_LOGS_DEBUG,
+            config_paths.PATH_LOGS_DEBUG,
             self._context_folder,
             self._model_subfolder
         )

@@ -5,10 +5,10 @@ import importlib.util
 import inspect
 from typing import Type, Dict, List
 
-import config.keys_unit_tests
+import config.keys_unit_tests as config_keys_unit_tests
 from unit_tests.interface_unit_test import UnitTestInterface
 
-ENABLED_UNIT_TESTS = config.keys_unit_tests.ENABLED_UNIT_TESTS
+ENABLED_UNIT_TESTS = config_keys_unit_tests.ENABLED_UNIT_TESTS
 UNIT_TEST_REGISTRY: Dict[str, Type[UnitTestInterface]] = {}
 
 

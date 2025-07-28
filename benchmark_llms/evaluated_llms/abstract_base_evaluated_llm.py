@@ -5,7 +5,7 @@ import abc
 from typing import Dict, Any
 from benchmark_llms.evaluated_llms.interface_evaluated_llm import InterfaceEvaluatedLLM
 import config.keys_evaluated_llms as config_keys_evaluated_llms
-import config.paths
+import config.paths as config_paths
 import yaml
 import json
 import datetime
@@ -76,7 +76,7 @@ class AbstractBaseEvaluatedLLM(InterfaceEvaluatedLLM, ABC):
         return cls.ModelKey
 
     @staticmethod
-    def _load_prompt_config(path: str = config.paths.PATH_CONFIG_PROMPT) -> dict:
+    def _load_prompt_config(path: str = config_paths.PATH_CONFIG_PROMPT) -> dict:
         with open(path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
 
