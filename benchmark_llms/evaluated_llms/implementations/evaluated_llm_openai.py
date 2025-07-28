@@ -3,9 +3,9 @@
 import openai
 from typing import List, Dict
 
-import config.paths
+import config.paths as config_paths
 from benchmark_llms.evaluated_llms.abstract_proprietary_evaluated_llm import AbstractProprietaryEvaluatedLLM
-import config.keys
+import config.keys_evaluated_llms as config_keys_evaluated_llms
 
 
 class EvaluatedLLMOpenAI(AbstractProprietaryEvaluatedLLM):
@@ -14,10 +14,10 @@ class EvaluatedLLMOpenAI(AbstractProprietaryEvaluatedLLM):
     Uses the shared AbstractProprietaryEvaluatedLLM base for config, API key loading, and response parsing.
     """
 
-    ModelKey = config.keys.OPENAI_GPT_4O
+    ModelKey = config_keys_evaluated_llms.OPENAI_GPT_4O
 
     def __init__(self):
-        super().__init__(config.paths.PATH_CONFIG_OPENAI)
+        super().__init__(config_paths.PATH_CONFIG_OPENAI)
 
     def _run_model_inference(self, records: list[dict]) -> str:
         import openai

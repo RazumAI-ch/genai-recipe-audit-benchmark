@@ -1,4 +1,4 @@
-# File: unit_test_abstract.py
+# File: interface_unit_test.py
 
 """
 This interface defines the contract for any individual unit test used in the

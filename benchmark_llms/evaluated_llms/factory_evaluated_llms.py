@@ -6,11 +6,11 @@ import inspect
 import typing
 from typing import Type, Dict, Any
 
-import config.keys
+import config.keys_evaluated_llms as config_keys_evaluated_llms
 from benchmark_llms.evaluated_llms.interface_evaluated_llm import InterfaceEvaluatedLLM  # ✅ corrected class name
 
 # Define which models are currently enabled for evaluation (manually managed)
-ENABLED_MODELS = config.keys.ENABLED_BENCHMARK_MODELS
+ENABLED_MODELS = config_keys_evaluated_llms.ENABLED_BENCHMARK_MODELS
 
 # Dynamically populated: ModelKey → Implementation Class
 MODEL_REGISTRY: Dict[str, Type[InterfaceEvaluatedLLM]] = {}

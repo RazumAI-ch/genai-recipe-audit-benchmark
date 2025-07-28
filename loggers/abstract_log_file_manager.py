@@ -6,7 +6,7 @@ import zoneinfo
 import typing
 import abc
 import config.paths
-import config.keys
+import config.keys_evaluated_llms as config_keys_evaluated_llms
 
 
 class AbstractLogFileManager(abc.ABC):
@@ -56,7 +56,7 @@ class AbstractLogFileManager(abc.ABC):
                 key=lambda f: os.path.getmtime(os.path.join(self.LOG_FOLDER_PATH, f)),
                 reverse=True
             )
-            for f in files_sorted[config.keys.LOG_HISTORY_SIZE:]:
+            for f in files_sorted[config_keys_evaluated_llms.LOG_HISTORY_SIZE:]:
                 try:
                     os.remove(os.path.join(self.LOG_FOLDER_PATH, f))
                 except Exception as e:
