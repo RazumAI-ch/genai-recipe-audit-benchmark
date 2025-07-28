@@ -1,17 +1,17 @@
-# File: benchmark_llms/runner_benchmark_evaluated_llm.py
+# File: benchmark_llms/runner_benchmark_evaluated_llms.py
 
 import db.database
-from benchmark_llms.evaluated_llms.factory_evaluated_llm import EvaluatedLLMFactory
+from benchmark_llms.evaluated_llms.factory_evaluated_llms import FactoryEvaluatedLLMs
 
 
-class BenchmarkEvaluatedLLMRunner:
+class RunnerBenchmarkEvaluatedLLMs:
     """
     Responsible for orchestrating the benchmark run using the factory.
     Loads sample records and evaluates them using all enabled models.
     """
 
     def __init__(self):
-        self.factory = EvaluatedLLMFactory()
+        self.factory = FactoryEvaluatedLLMs()
 
     def run_benchmark(self, max_records: int = None) -> None:
         sample_records = db.database.load_sample_records(limit=max_records)

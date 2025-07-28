@@ -1,10 +1,10 @@
-# File: benchmark_llms/interface_llm.py
+# File: benchmark_llms/interface_evaluated_llm.py
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
 import yaml
 
-class EvaluatedLLMInterface(ABC):
+class InterfaceEvaluatedLLM(ABC):
     """
     Abstract interface for all LLM implementations.
     Handles config loading and enforces prepare + batch eval contract.

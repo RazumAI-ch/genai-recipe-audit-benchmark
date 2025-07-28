@@ -1,17 +1,17 @@
-# File: benchmark_llms/model_openai.py
+# File: benchmark_llms/evaluated_llm_openai.py
 
 import openai
 from typing import List, Dict
 
 import config.paths
-from benchmark_llms.evaluated_llms.abstract_proprietary_evaluated_llm import ProprietaryEvaluatedLLM
+from benchmark_llms.evaluated_llms.abstract_proprietary_evaluated_llm import AbstractProprietaryEvaluatedLLM
 import config.keys
 
 
-class OpenAIModel(ProprietaryEvaluatedLLM):
+class EvaluatedLLMOpenAI(AbstractProprietaryEvaluatedLLM):
     """
     Concrete implementation for OpenAI's GPT models.
-    Uses the shared ProprietaryEvaluatedLLM base for config, API key loading, and response parsing.
+    Uses the shared AbstractProprietaryEvaluatedLLM base for config, API key loading, and response parsing.
     """
 
     ModelKey = config.keys.OPENAI_GPT_4O

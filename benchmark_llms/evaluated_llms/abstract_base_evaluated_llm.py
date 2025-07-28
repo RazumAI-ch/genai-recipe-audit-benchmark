@@ -3,7 +3,7 @@
 from abc import ABC
 import abc
 from typing import Dict, Any
-from benchmark_llms.evaluated_llms.interface_llm import EvaluatedLLMInterface
+from benchmark_llms.evaluated_llms.interface_evaluated_llm import InterfaceEvaluatedLLM
 import config.keys
 import config.paths
 import yaml
@@ -12,7 +12,7 @@ import datetime
 from loggers.implementations.benchmark_log_manager import BenchmarkLogFileManager
 from benchmark_llms.utils.prompt_helpers import get_deviation_section_from_db
 
-class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
+class AbstractBaseEvaluatedLLM(InterfaceEvaluatedLLM, ABC):
     """
     Abstract base class for all concrete LLMs.
     Handles prompt config loading, model overrides, and shared setup logic.

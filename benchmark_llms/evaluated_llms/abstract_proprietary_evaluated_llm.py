@@ -3,12 +3,12 @@
 import os
 from abc import ABC
 import json
-from benchmark_llms.evaluated_llms.abstract_base_evaluated_llm import BaseEvaluatedLLM
+from benchmark_llms.evaluated_llms.abstract_base_evaluated_llm import AbstractBaseEvaluatedLLM
 import benchmark_llms.utils.utils as utils
 from config.keys import API_KEY_ENV
 
 
-class ProprietaryEvaluatedLLM(BaseEvaluatedLLM, ABC):
+class AbstractProprietaryEvaluatedLLM(AbstractBaseEvaluatedLLM, ABC):
     """
     Abstract base class for proprietary (closed-source) LLMs.
     Handles shared setup logic like loading API keys.
