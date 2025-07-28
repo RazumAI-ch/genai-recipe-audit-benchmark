@@ -10,7 +10,7 @@ import yaml
 import json
 import datetime
 from loggers.implementations.benchmark_log_manager import BenchmarkLogFileManager
-
+from benchmark_llms.utils.prompt_helpers import get_deviation_section_from_db
 
 class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
     """
@@ -42,6 +42,9 @@ class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
         self.system_prompt = self.prompt_config.get(config.keys.SYSTEM_PROMPT, "")
         self.user_prompt_prefix = self.prompt_config.get(config.keys.USER_PROMPT, "")
 
+        deviation_section = get_deviation_section_from_db()
+        self.user_prompt_prefix = self.user_prompt_prefix.replace("{{DEVIATION_SECTION}}", deviation_section)
+
         # Append current UTC time to prompt (for 'future_date' logic)
         current_utc = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
         self.user_prompt_prefix += (
@@ -59,6 +62,12 @@ class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
 
     def log_raw_response(self, raw_output: str) -> None:
         self.logger.write_log("response", raw_output)
+
+    def log_prompt_sent(self, records: list[dict]) -> None:
+        self.logger.write_log("prompts_sent", {
+            "system_prompt": self.system_prompt,
+            "user_prompt": self.build_full_prompt(records)
+        })
 
     @classmethod
     def get_model_key(cls) -> str:
@@ -90,9 +99,9 @@ class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
     def __repr__(self):
         return f"<{self.__class__.__name__} model={self.model}>"
 
-    # In BaseEvaluatedLLM
     def evaluate(self, records: list[dict]) -> dict:
         self.log_input_records(records)
+        self.logger.write_prompt_text_files(self.system_prompt, self.user_prompt_prefix)
 
         raw_output = self._run_model_inference(records)
 
