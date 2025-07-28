@@ -12,6 +12,7 @@ USER_PROMPT = "user_prompt"          # Key for the user role message in prompt c
 
 LLM_TEMPERATURE = 0.0                # Default temperature used in all LLM completions
 LLM_MAX_TOKENS_DEFAULT = 16000       # Default maximum tokens allowed in a single LLM response
+LLM_DEFAULT_BATCH_SIZE = 50          # Used if model-specific config omits batch_size
 
 # Log retention policy — number of recent log files to retain per model.
 # Set to 0 to delete all logs before each new run (minimal storage mode).

@@ -55,7 +55,7 @@ class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
             self.model_config.update(overrides)
 
         self.model = self.model_config[config.keys.MODEL]
-        self.batch_size = self.model_config.get(config.keys.BATCH_SIZE, 10)
+        self.batch_size = self.model_config.get(config.keys.BATCH_SIZE, config.keys.LLM_DEFAULT_BATCH_SIZE)
 
     def log_input_records(self, records: list[dict]) -> None:
         self.logger.write_log("input_records", {"records": records})
@@ -100,14 +100,27 @@ class BaseEvaluatedLLM(EvaluatedLLMInterface, ABC):
         return f"<{self.__class__.__name__} model={self.model}>"
 
     def evaluate(self, records: list[dict]) -> dict:
-        self.log_input_records(records)
         self.logger.write_prompt_text_files(self.system_prompt, self.user_prompt_prefix)
 
-        raw_output = self._run_model_inference(records)
+        all_deviations = []
+        batches = self._split_into_batches(records, batch_size=self.batch_size)
 
-        self.log_raw_response(raw_output)
+        for i, batch in enumerate(batches, 1):
+            self.logger.write_log(f"batch_{i:02d}_input", {"records": batch})
+            raw_output = self._run_model_inference(batch)
+            self.logger.write_log(f"batch_{i:02d}_response", raw_output)
 
-        return self.parse_model_response(raw_output)
+            parsed = self.parse_model_response(raw_output)
+            all_deviations.extend(parsed.get("records", []))
+
+        return {
+            "summary_text": f"Consolidated from {len(records)} input records in {len(batches)} batches.",
+            "data_quality_score": -1,  # Placeholder until proper scoring
+            "records": all_deviations,
+        }
+
+    def _split_into_batches(self, records: list[dict], batch_size: int) -> list[list[dict]]:
+        return [records[i:i + batch_size] for i in range(0, len(records), batch_size)]
 
     @abc.abstractmethod
     def _run_model_inference(self, records: list[dict]) -> str:
