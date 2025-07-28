@@ -64,11 +64,10 @@ Full list available in `config/deviation_types.csv`.
 ```
 genai-recipe-audit-benchmark/
 ├── archive/         # Backups of DB and logs
-├── benchmark_llms/  # Core benchmark runner and scoring logic
+├── benchmark_llms/  # Core benchmark runner, scoring logic and LLM wrappers
 ├── config/          # Prompt templates and LLM pricing
 ├── db/              # Production DB access layer
 ├── docs/            # Usage and methodology
-├── llms/            # LLM wrappers (API, open, and retrained)
 ├── loggers/         # Structured log generation for benchmarks/tests
 ├── models/          # Saved LoRA adapter folders and full retrain outputs
 ├── public_assets/   # Public media, reports, or charts
