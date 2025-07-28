@@ -14,7 +14,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Run the GenAI Recipe Audit Benchmark")
-    parser.add_argument("max_records", nargs="?", default="10",
+    parser.add_argument("max_records", nargs="?", default="15",
                         help="Number of records to audit (e.g., 100, 1000, or 'none' for all records)")
     args = parser.parse_args()
 

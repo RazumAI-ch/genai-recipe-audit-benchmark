@@ -14,7 +14,7 @@ USER_PROMPT = "user_prompt"      # Key for user prompt content in prompt YAML
 
 LLM_TEMPERATURE = 0.0                # Default temperature for all completions
 LLM_MAX_TOKENS_DEFAULT = 16000       # Default token cap per LLM response
-LLM_DEFAULT_BATCH_SIZE = 50          # Used if a model config omits batch_size
+LLM_DEFAULT_BATCH_SIZE = 100         # Used if a model config omits batch_size
 
 # ============================
 # Logging & Retention
