@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from typing import ClassVar
-
+import config.paths as config_paths
 
 class AbstractUnitTest(ABC):
     """
@@ -11,6 +11,10 @@ class AbstractUnitTest(ABC):
     """
 
     KEY: ClassVar[str]
+    LOG_FOLDER_PATH: ClassVar[str]
+
+    def __init__(self):
+        self.LOG_FOLDER_PATH = config_paths.PATH_LOGS_UNIT_TESTS
 
     @abstractmethod
     def run(self) -> None:

@@ -66,7 +66,7 @@ _import-from-archive:
 	psql -q -U "$$USER" -d "$$DB" > /dev/null
 
 # Import any .gz backup by specifying FILE=...
-# Example: make import-db-adhoc FILE=archive/backup/db-backup/2025-07-26_19-46.gz
+# Example: make import-utils_db-adhoc FILE=archive/backup/utils_db-backup/2025-07-26_19-46.gz
 import-db-adhoc: _clear
 	@echo "Resetting DB before importing ad-hoc backup..."
 	@$(MAKE) _recreate_empty_db
@@ -119,7 +119,7 @@ _show-db-stats:
 	FROM pg_stat_user_tables ORDER BY relname;"
 
 # ============================================
-# Archiving of db and logs
+# Archiving of utils_db and logs
 # ============================================
 
 _copy-latest-db-to-archive:
@@ -188,7 +188,7 @@ check-training-llm-sources:
 
 _run-unit-tests:
 	@echo "Running all unit tests..."
-	docker-compose run --rm --remove-orphans cli python unit_tests/runner_unit_tests.py
+	docker-compose run --rm cli python -m unit_tests.runner_unit_tests
 
 
 # ============================================

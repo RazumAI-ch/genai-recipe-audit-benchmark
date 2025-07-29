@@ -1,8 +1,9 @@
 # File: unit_tests/runner_unit_tests.py
 
 from unit_tests.factory_unit_tests import FactoryUnitTests
-from loggers.implementations.unit_test_log_manager import BenchmarkUnitTestLogFileManager
+from loggers.implementations.unit_test_log_manager import UnitTestLogFileManager
 from unit_tests.abstract_unit_test import AbstractUnitTest
+import config.paths as config_paths
 
 
 class RunnerUnitTests:
@@ -11,7 +12,6 @@ class RunnerUnitTests:
     """
 
     def __init__(self):
-        self.logger = BenchmarkUnitTestLogFileManager()
         self.factory = FactoryUnitTests()
 
     def run_all(self) -> None:
@@ -23,6 +23,9 @@ class RunnerUnitTests:
 
         for unit_test in enabled_unit_tests:
             unit_test: AbstractUnitTest = unit_test
+
+            self.logger = UnitTestLogFileManager(context_folder_path=unit_test.LOG_FOLDER_PATH, subfolder_name=unit_test.KEY)
+
             initial_log_msg = f"Running unit test: {unit_test.KEY}\n"
             log_path = self.logger.write_log(suffix=unit_test.KEY, content=initial_log_msg)
 

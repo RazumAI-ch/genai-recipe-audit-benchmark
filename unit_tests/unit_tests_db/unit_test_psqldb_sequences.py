@@ -1,10 +1,11 @@
-# File: unit_tests/core/unit_test_psqldb_sequences.py
+# File: unit_tests/unit_tests_db/unit_test_psqldb_sequences.py
 
-from unit_tests.abstract_unit_test import AbstractUnitTest
 import config.keys_unit_tests as tests
-import unit_tests.db.psqldb_sequences as db_psqldb_sequences
+import unit_tests.utils_db.psqldb_sequences as db_psqldb_sequences
+from unit_tests.unit_tests_db.abstract_unit_test_db import AbstractUnitTestDB
 
-class UnitTestPSQLDBSequences(AbstractUnitTest):
+
+class UnitTestPSQLDBSequences(AbstractUnitTestDB):
     """
     Verifies that PostgreSQL sequences are initialized correctly.
     Sequence last_value must be ≥ MAX(id) + 1.

@@ -1,4 +1,4 @@
-# File: unit_tests/db/schema_docs.py
+# File: unit_tests/utils_db/schema_docs.py
 
 from db.core.connection import get_db_connection
 

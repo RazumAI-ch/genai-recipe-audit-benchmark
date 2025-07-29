@@ -1,10 +1,10 @@
-# File: unit_tests/core/unit_test_schema_docs_sync.py
+# File: unit_tests/unit_tests_db/unit_test_schema_docs_sync.py
 
-from unit_tests.abstract_unit_test import AbstractUnitTest
+from unit_tests.unit_tests_db.abstract_unit_test_db import AbstractUnitTestDB
 import config.keys_unit_tests as keys
-import unit_tests.db.schema_docs as schema_docs
+import unit_tests.utils_db.schema_docs as schema_docs
 
-class UnitTestSchemaDocsSync(AbstractUnitTest):
+class UnitTestSchemaDocsSync(AbstractUnitTestDB):
     KEY = keys.UNIT_TEST_SCHEMA_DOCS_SYNC
 
     def run(self) -> None:

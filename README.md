@@ -156,7 +156,7 @@ All benchmarks track:
 
 ```bash
 docker-compose up -d
-make setup-db
+make setup-utils_db
 python main.py
 ```
 

@@ -32,5 +32,3 @@ PATH_LOGS_DEBUG_TRAIN = f"{PATH_LOGS_EPHEMERAL}/debug/train"
 
 # Unit test logs (also ephemeral)
 PATH_LOGS_UNIT_TESTS = f"{PATH_LOGS_EPHEMERAL}/unit_tests"
-PATH_LOGS_UNIT_TESTS_BENCHMARK = f"{PATH_LOGS_UNIT_TESTS}/benchmark_unit_tests_logs"
-PATH_LOGS_UNIT_TESTS_TRAINING = f"{PATH_LOGS_UNIT_TESTS}/training_unit_tests_logs"

@@ -96,3 +96,18 @@ class AbstractLogFileManager(abc.ABC):
         Default is '.log'.
         """
         return ".log"
+
+    # def set_subfolder_name(self, new_subfolder_name: str) -> None:
+    #     """
+    #     Updates the subfolder used for log storage. Useful when the logger instance is shared,
+    #     but the destination folder needs to vary (e.g., per test case or model).
+    #     """
+    #     if not new_subfolder_name:
+    #         raise ValueError("new_subfolder_name must be a non-empty string.")
+    #
+    #     self._model_subfolder = new_subfolder_name
+    #     self.LOG_FOLDER_PATH = os.path.join(
+    #         self._context_folder_path,
+    #         self._model_subfolder
+    #     )
+    #     self.ensure_log_dir()

@@ -1,4 +1,4 @@
-# File: db/psqldb_sequences.py
+# File: utils_db/psqldb_sequences.py
 
 from db.core.connection import get_db_connection
 
