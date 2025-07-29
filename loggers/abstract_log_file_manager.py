@@ -16,20 +16,19 @@ class AbstractLogFileManager(abc.ABC):
     """
 
     LOG_FOLDER_PATH: str = None  # Full resolved path (e.g., logs/ephemeral/debug/benchmark_llms/gpt-4o)
-    _context_folder: str = None  # e.g., 'benchmark_llms', 'training'
+    _context_folder_path: str = None  # Context folder path should be set by the final implementation
     _model_subfolder: str = None  # e.g., 'gpt-4o'
 
-    def __init__(self, context_folder: str, subfolder_name: str):
+    def __init__(self, context_folder_path: str, subfolder_name: str):
         if not subfolder_name:
             raise ValueError("subfolder_name (typically model name) must be provided.")
-        if not context_folder:
-            raise ValueError("context_folder (e.g., 'benchmark_llms') must be provided.")
+        if not context_folder_path:
+            raise ValueError("context_folder_path (e.g., 'benchmark_llms') must be provided.")
 
-        self._context_folder = context_folder
+        self._context_folder_path = context_folder_path
         self._model_subfolder = subfolder_name
         self.LOG_FOLDER_PATH = os.path.join(
-            config_paths.PATH_LOGS_DEBUG,
-            self._context_folder,
+            self._context_folder_path,
             self._model_subfolder
         )
         self.ensure_log_dir()

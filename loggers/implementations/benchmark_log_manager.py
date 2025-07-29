@@ -4,10 +4,11 @@ import os
 import json
 import typing
 from loggers.abstract_log_file_manager import AbstractLogFileManager
+import config.paths as config_paths
 
 class BenchmarkLogFileManager(AbstractLogFileManager):
     def __init__(self, model_name: str):
-        super().__init__(context_folder="benchmark_llms", subfolder_name=model_name)
+        super().__init__(context_folder_path=config_paths.PATH_LOGS_DEBUG, subfolder_name=model_name)
 
     def get_extension(self) -> str:
         return ".json"
