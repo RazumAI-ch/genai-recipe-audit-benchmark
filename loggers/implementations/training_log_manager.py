@@ -1,9 +1,9 @@
 # File: loggers/implementations/training_log_manager.py
 
 from loggers.abstract_log_file_manager import AbstractLogFileManager
+import config.paths as config_paths
 
 class TrainingLogFileManager(AbstractLogFileManager):
-import config.paths as config_paths
     """
     Log manager for training runs.
 
