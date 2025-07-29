@@ -1,4 +1,4 @@
-# File: unit_tests/benchmark_unit_tests/unit_test_schema_docs_sync.py
+# File: unit_tests/core/unit_test_schema_docs_sync.py
 
 from unit_tests.abstract_unit_test import AbstractUnitTest
 import config.keys_unit_tests as keys

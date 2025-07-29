@@ -1,7 +1,7 @@
 # File: unit_tests/runner_unit_tests.py
 
 from unit_tests.factory_unit_tests import FactoryUnitTests
-from loggers.implementations.benchmark_unit_test_log_manager import BenchmarkUnitTestLogFileManager
+from loggers.implementations.unit_test_log_manager import BenchmarkUnitTestLogFileManager
 from unit_tests.abstract_unit_test import AbstractUnitTest
 
 

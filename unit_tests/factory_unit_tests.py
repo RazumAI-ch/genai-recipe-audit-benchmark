@@ -14,14 +14,14 @@ UNIT_TEST_REGISTRY: Dict[str, Type[AbstractUnitTest]] = {}
 
 def _load_unit_test_implementations():
     """
-    Loads all unit test implementations from benchmark_unit_tests and training_unit_tests folders.
+    Loads all unit test implementations from core and training_unit_tests folders.
     Registers classes that:
     - Subclass AbstractUnitTest
     - Are not abstract
     - Define a static/class field KEY
     """
     current_dir = os.path.dirname(__file__)
-    subfolders = ["benchmark_unit_tests", "training_unit_tests"]
+    subfolders = ["core", "training_unit_tests"]
 
     for subfolder in subfolders:
         full_path = os.path.join(current_dir, subfolder)

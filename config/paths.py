@@ -27,9 +27,10 @@ PATH_LOGS_ARCHIVABLE_BENCHMARK_RUNS = f"{PATH_LOGS_ARCHIVABLE}/benchmark_runs"  
 
 # Ephemeral logs (temporary run logs)
 PATH_LOGS_EPHEMERAL = f"{PATH_LOGS}/ephemeral"
-PATH_LOGS_DEBUG = f"{PATH_LOGS_EPHEMERAL}/debug"
+PATH_LOGS_DEBUG_BENCHMARK = f"{PATH_LOGS_EPHEMERAL}/debug/benchmark"
+PATH_LOGS_DEBUG_TRAIN = f"{PATH_LOGS_EPHEMERAL}/debug/train"
 
 # Unit test logs (also ephemeral)
-PATH_LOGS_UNIT_TESTS = f"{PATH_LOGS_EPHEMERAL}/unit_tests_logs"
+PATH_LOGS_UNIT_TESTS = f"{PATH_LOGS_EPHEMERAL}/unit_tests"
 PATH_LOGS_UNIT_TESTS_BENCHMARK = f"{PATH_LOGS_UNIT_TESTS}/benchmark_unit_tests_logs"
 PATH_LOGS_UNIT_TESTS_TRAINING = f"{PATH_LOGS_UNIT_TESTS}/training_unit_tests_logs"
