@@ -188,7 +188,7 @@ check-training-llm-sources:
 
 _run-unit-tests:
 	@echo "Running all unit tests..."
-	docker-compose run --rm cli python -m unit_tests.runner_unit_tests
+	docker-compose run --rm --remove-orphans cli python -m unit_tests.runner_unit_tests
 
 
 # ============================================
