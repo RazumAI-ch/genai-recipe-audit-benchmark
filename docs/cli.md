@@ -75,8 +75,7 @@ This guide documents how to interact with the project via the command line, incl
 
 - `README.md` – Project overview and structure
 - `db/schema.sql` – Current database schema
-- `archive/` – DB and training backups
-- `logs/debug/` – LLM responses from benchmark runs
+- `archive/` – DB backups and training logs (including debug outputs)
 
 ---
 
