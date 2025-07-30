@@ -1,15 +1,14 @@
 # 🧰 Command-Line Interface (CLI) Guide – GenAI Recipe Audit Benchmark
 
 This guide documents how to interact with the project via the command line, including:
-- Starting/stopping the PostgreSQL container
-- Resetting the database schema
-- Loading LLM and deviation seeds
-- Viewing table contents and database stats
 - Running the benchmark
+- Managing the database
+- Generating and inspecting training data
+- Training models
 
 ---
 
-## Prerequisites
+## ✅ Prerequisites
 
 - Docker installed and available in your terminal
 - `make` installed (comes preinstalled on macOS and Linux)
@@ -17,54 +16,75 @@ This guide documents how to interact with the project via the command line, incl
 
 ---
 
-## Project Commands via `make`
+## 🚀 Benchmark Execution
 
-The project includes a `Makefile` with helpful shortcuts:
+| Command             | Description                                                  |
+|----------------------|--------------------------------------------------------------|
+| `make run`           | Run the benchmark (default mode, uses default record count)  |
+| `make run 20`        | Run the benchmark on 20 records                              |
+| `make run none`      | Run the benchmark on **all** available sample records        |
 
-| Command                      | Description                                                   |
-|------------------------------|---------------------------------------------------------------|
-| `make wait-for-db`           | Wait for DB container to be ready before executing commands   |
-| `make recreate_empty_db`     | Drop all containers and volumes, and restart everything        |
-| `make fix-sequences`         | Reset Postgres sequences after restoring a backup             |
-| `make refresh-schema-docs`   | Refresh schema.sql and update `schema_docs` with missing fields |
-| `make sort-schema-docs`      | Sort `schema_docs` by table and column name                   |
-| `make save_to_file`          | Save current DB state into a compressed `.sql.gz` file         |
-| `make copy-latest-db-to-archive` | Copy most recent DB backup to `archive/` as `db-backup-latest.zip` |
-| `make archive-latest-logs`   | Archive all training logs to `logs-latest.zip`                |
-| `make import-db`             | Restore DB from latest archive                                |
-| `make import-db-adhoc FILE=path/to/file.sql.gz` | Restore DB from a specified compressed file      |
-| `make run`                   | Run the benchmark using `main.py`                             |
-| `make show-db-stats`         | Show current row counts for all key tables                    |
-| `make clear`                 | Clear the terminal                                            |
-
-Run these from your project root, for example:
-
-```bash
-make save_to_file
-make run
-```
+> ℹ️ `make run` accepts an optional **positional argument**:  
+> - Omit it to use the system default  
+> - Use `20` to audit 20 records  
+> - Use `none` to process the entire dataset
 
 ---
 
-## Manual DB Interactions (Advanced)
+## 💾 Database Management
 
-### Load a SQL File
-```bash
-docker compose exec utils_db psql -U benchmark_llms -d benchmarkdb -f /app/utils_db/some_script.sql
-```
-
-### Open psql Prompt
-```bash
-make psql
-```
+| Command                          | Description                                                   |
+|----------------------------------|---------------------------------------------------------------|
+| `make psql`                      | Open a `psql` prompt inside the DB container                  |
+| `make backup-db`                 | Recreate DB and restore schema/docs from latest archive       |
+| `make import-db-adhoc FILE=...` | Restore DB from a specified `.sql.gz` backup                  |
 
 ---
 
-## See Also
+## 🧠 Model Training (LoRA)
 
-- `README.md` – project overview
-- `db/schema.sql` – core schema definition
-- `db/refresh_schema_docs.sql` – autofill missing documentation entries
-- `db/sort_schema_docs.sql` – keep schema_docs consistent and readable
-- `archive/` – backups and logs
-- `logs/debug/` – last model responses (auto overwritten)
+| Command                     | Description                                          |
+|-----------------------------|------------------------------------------------------|
+| `make train-lora-tinyllama` | Run LoRA training locally with TinyLlama             |
+| `make tail-lora-log`        | Live tail of the latest training log                |
+| `make track-lora-progress`  | View summary stats (accuracy/loss) of last training |
+
+---
+
+## 🏗️ Training Data Management
+
+| Command                                  | Description                                       |
+|-------------------------------------------|---------------------------------------------------|
+| `make generate-training-examples`        | Generate and insert training records in the DB    |
+| `make check-training-data`              | Run all training data checks (below)              |
+| `make check-training-examples`          | View last 10 training examples                    |
+| `make check-training-example-deviations`| View last 20 deviations linked to training data   |
+| `make check-training-llm-sources`       | View source LLMs used for generating examples     |
+
+---
+
+## 📊 Utilities
+
+| Command           | Description                    |
+|--------------------|--------------------------------|
+| `make docker-stats`| Show container memory/CPU usage|
+
+---
+
+## 📚 See Also
+
+- `README.md` – Project overview and structure
+- `db/schema.sql` – Current database schema
+- `archive/` – DB and training backups
+- `logs/debug/` – LLM responses from benchmark runs
+
+---
+
+## 🛑 Internal Targets (Not for Direct Use)
+
+The following Makefile targets are **internal only**. They are automatically invoked by public commands and should **not** be run manually:
+
+- All targets starting with `_` (e.g., `_wait-for-db`, `_run-unit-tests`, `_refresh-schema-docs`)
+- `clear` – used internally to clean the terminal
+- `archive-latest-logs` – called by `backup-db`, not for standalone use
+- `show-db-stats` – shown automatically as part of other flows
