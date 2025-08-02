@@ -1,7 +1,7 @@
 # File: benchmark_llms/runner_benchmark_evaluated_llms.py
 
 import db.utils.load_sample_records
-from benchmark_llms.evaluated_llms.factory_evaluated_llms import FactoryEvaluatedLLMs
+from benchmark_llms.utils.factory_evaluated_llms import FactoryEvaluatedLLMs
 from loggers.implementations.benchmark_log_manager import BenchmarkLogFileManager
 
 

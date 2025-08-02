@@ -17,7 +17,7 @@ class EvaluatedLLMGemini1_5Pro(AbstractProprietaryEvaluatedLLM):
     ModelKey = config_keys.GEMINI_1_5_PRO
 
     def __init__(self):
-        super().__init__(config_paths.PATH_CONFIG_GEMINI_1_5_PRO)
+        super().__init__(config_paths.PATH_CONFIG_EVALUATED_LLM_GEMINI_1_5_PRO)
 
     def prepare(self, overrides=None):
         super().prepare(overrides=overrides)

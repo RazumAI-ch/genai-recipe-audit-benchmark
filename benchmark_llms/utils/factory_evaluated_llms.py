@@ -24,7 +24,11 @@ def _load_model_implementations():
     - Are not abstract (we assume concrete implementations only)
     Registers via get_model_key()
     """
-    impl_dir = os.path.join(os.path.dirname(__file__), "implementations")
+    import config.paths as config_paths
+    impl_dir = config_paths.PATH_BENCHMARK_EVALUATED_LLM_IMPLEMENTATIONS  # Assuming you have this path constant defined
+    if not os.path.isdir(impl_dir):
+        raise FileNotFoundError(f"Model implementation directory not found: {impl_dir}")
+
 
     for filename in os.listdir(impl_dir):
         if not filename.endswith(".py") or filename.startswith("_"):

@@ -1,33 +1,39 @@
-# ============================
-# Benchmark LLM Configuration
-# ============================
-
-PATH_CONFIG_BENCHMARK_BASE = "config"
-
-# Prompt configuration (used for all benchmark_llms LLMs)
-PATH_CONFIG_PROMPT = f"{PATH_CONFIG_BENCHMARK_BASE}/prompts.yaml"
-
-# Individual LLM model configs
-PATH_CONFIG_OPENAI_GPT_4o = f"{PATH_CONFIG_BENCHMARK_BASE}/evaluated_llm_configs/openai_gpt_4o.yaml"
-PATH_CONFIG_GEMINI_1_5_PRO = f"{PATH_CONFIG_BENCHMARK_BASE}/evaluated_llm_configs/gemini_1_5_pro.yaml"
-
+# File: config/paths.py
 
 # ============================
-# Log Storage Paths
+# Benchmark LLM Configuration Paths
 # ============================
 
-# Root log path (relative to project root)
+PATH_CONFIG_BASE = "config"
+
+# --- Prompt Configuration (YAML)
+PATH_CONFIG_PROMPT = f"{PATH_CONFIG_BASE}/prompts.yaml"
+
+# --- Model Configuration Files (YAML per LLM)
+PATH_CONFIG_EVALUATED_LLM_OPENAI_GPT_4o = f"{PATH_CONFIG_BASE}/evaluated_llm_configs/openai_gpt_4o.yaml"
+PATH_CONFIG_EVALUATED_LLM_GEMINI_1_5_PRO = f"{PATH_CONFIG_BASE}/evaluated_llm_configs/gemini_1_5_pro.yaml"
+PATH_CONFIG_EVALUATED_LLM_GEMINI_1_5_FLASH = f"{PATH_CONFIG_BASE}/evaluated_llm_configs/gemini_1_5_flash.yaml"
+
+# --- Python Class Implementations (LLM code)
+PATH_BENCHMARK_EVALUATED_LLM_IMPLEMENTATIONS = "benchmark_llms/evaluated_llms/implementations"
+
+
+# ============================
+# Benchmark Logging Paths
+# ============================
+
+# --- Root Log Folder
 PATH_LOGS = "archive/logs"
 
-# Archivable logs (persisted long-term)
+# --- Long-Term Archive Logs
 PATH_LOGS_ARCHIVABLE = f"{PATH_LOGS}/archivable"
 PATH_LOGS_ARCHIVABLE_LLM_TRAINING = f"{PATH_LOGS_ARCHIVABLE}/llm_training"
 PATH_LOGS_ARCHIVABLE_BENCHMARK_RUNS = f"{PATH_LOGS_ARCHIVABLE}/benchmark_runs"  # optional use
 
-# Ephemeral logs (temporary run logs)
+# --- Temporary Logs (non-archivable)
 PATH_LOGS_EPHEMERAL = f"{PATH_LOGS}/ephemeral"
 PATH_LOGS_DEBUG_BENCHMARK = f"{PATH_LOGS_EPHEMERAL}/debug/benchmark"
 PATH_LOGS_DEBUG_TRAIN = f"{PATH_LOGS_EPHEMERAL}/debug/train"
 
-# Unit test logs (also ephemeral)
+# --- Unit Test Logs
 PATH_LOGS_UNIT_TESTS = f"{PATH_LOGS_EPHEMERAL}/unit_tests"

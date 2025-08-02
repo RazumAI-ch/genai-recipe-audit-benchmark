@@ -16,7 +16,7 @@ class EvaluatedLLMOpenAIGPT4o(AbstractProprietaryEvaluatedLLM):
     ModelKey = config_keys_evaluated_llms.OPENAI_GPT_4O
 
     def __init__(self):
-        super().__init__(config_paths.PATH_CONFIG_OPENAI_GPT_4o)
+        super().__init__(config_paths.PATH_CONFIG_EVALUATED_LLM_OPENAI_GPT_4o)
 
     def _run_model_inference(self, records: list[dict]) -> str:
         client = openai.OpenAI(api_key=self.api_key)
