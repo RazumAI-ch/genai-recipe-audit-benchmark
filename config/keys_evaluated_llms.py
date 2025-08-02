@@ -38,8 +38,6 @@ GEMINI_2_5_PRO = "gemini-2.5-pro"
 # Models Enabled for Benchmark
 # ============================
 
-ENABLED_BENCHMARK_MODELS = {
-    OPENAI_GPT_4O,
-    GEMINI_1_5_PRO,
-    GEMINI_1_5_FLASH,
+DISABLED_BENCHMARK_MODELS = {
+    GEMINI_2_5_PRO,
 }

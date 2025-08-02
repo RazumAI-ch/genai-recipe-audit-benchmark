@@ -11,8 +11,8 @@ import config.keys_evaluated_llms as config_keys_evaluated_llms
 from benchmark_llms.evaluated_llms.interface_evaluated_llm import InterfaceEvaluatedLLM
 from loggers.implementations.benchmark_log_manager import BenchmarkLogFileManager
 
-# Define which models are currently enabled for evaluation (manually managed)
-ENABLED_MODELS = config_keys_evaluated_llms.ENABLED_BENCHMARK_MODELS
+# Models to exclude from execution (everything else is enabled)
+DISABLED_MODELS = config_keys_evaluated_llms.DISABLED_BENCHMARK_MODELS
 
 # Dynamically populated: ModelKey → Implementation Class
 MODEL_REGISTRY: Dict[str, Type[InterfaceEvaluatedLLM]] = {}
@@ -57,6 +57,9 @@ def _load_model_implementations():
             except Exception as e:
                 raise TypeError(f"Class {cls.__name__} failed get_model_key(): {e}")
 
+            if model_key in MODEL_REGISTRY:
+                raise ValueError(f"Duplicate ModelKey detected: {model_key}")
+
             MODEL_REGISTRY[model_key] = cls
 
 
@@ -71,14 +74,17 @@ class FactoryEvaluatedLLMs:
 
     def __init__(self):
         self.model_registry: Dict[str, Type[InterfaceEvaluatedLLM]] = MODEL_REGISTRY
-        self.enabled_models: typing.Set[str] = ENABLED_MODELS
+        self.disabled_models: typing.Set[str] = DISABLED_MODELS
+        self.enabled_models: typing.Set[str] = {
+            k for k in self.model_registry.keys() if k not in self.disabled_models
+        }
 
         self.logger = BenchmarkLogFileManager("_benchmark_factory")
         self.logger.write_log("startup", {
             "registered_models": list(self.model_registry.keys()),
-            "enabled_models": list(self.enabled_models)
+            "enabled_models": list(self.enabled_models),
+            "disabled_models": list(self.disabled_models)
         })
-
 
     def get_enabled_models(self) -> Dict[str, Type[InterfaceEvaluatedLLM]]:
         """
