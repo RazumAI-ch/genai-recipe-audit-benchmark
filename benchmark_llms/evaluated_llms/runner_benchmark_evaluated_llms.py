@@ -2,6 +2,7 @@
 
 import db.utils.load_sample_records
 from benchmark_llms.evaluated_llms.factory_evaluated_llms import FactoryEvaluatedLLMs
+from loggers.implementations.benchmark_log_manager import BenchmarkLogFileManager
 
 
 class RunnerBenchmarkEvaluatedLLMs:
@@ -12,6 +13,7 @@ class RunnerBenchmarkEvaluatedLLMs:
 
     def __init__(self):
         self.factory = FactoryEvaluatedLLMs()
+        self.logger = BenchmarkLogFileManager("_benchmark_runner")
 
     def run_benchmark(self, max_records: int = None) -> None:
         sample_records = db.utils.load_sample_records.load_sample_records(limit=max_records)
@@ -31,6 +33,14 @@ class RunnerBenchmarkEvaluatedLLMs:
 
             audited_records = model_output.get("records", [])
             records_with_deviations = [r for r in audited_records if r.get("deviations")]
+
+            self.logger.write_log(
+                suffix=f"{model_name}_summary",
+                content={
+                    "records_evaluated": total_records,
+                    "records_with_deviations": len(records_with_deviations)
+                }
+            )
 
             print(f"Summary for {model_name}:")
             print(f"- Records sent for audit: {total_records}")

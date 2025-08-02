@@ -7,7 +7,8 @@ import typing
 from typing import Type, Dict, Any
 
 import config.keys_evaluated_llms as config_keys_evaluated_llms
-from benchmark_llms.evaluated_llms.interface_evaluated_llm import InterfaceEvaluatedLLM  # ✅ corrected class name
+from benchmark_llms.evaluated_llms.interface_evaluated_llm import InterfaceEvaluatedLLM
+from loggers.implementations.benchmark_log_manager import BenchmarkLogFileManager
 
 # Define which models are currently enabled for evaluation (manually managed)
 ENABLED_MODELS = config_keys_evaluated_llms.ENABLED_BENCHMARK_MODELS
@@ -67,6 +68,13 @@ class FactoryEvaluatedLLMs:
     def __init__(self):
         self.model_registry: Dict[str, Type[InterfaceEvaluatedLLM]] = MODEL_REGISTRY
         self.enabled_models: typing.Set[str] = ENABLED_MODELS
+
+        self.logger = BenchmarkLogFileManager("_benchmark_factory")
+        self.logger.write_log("startup", {
+            "registered_models": list(self.model_registry.keys()),
+            "enabled_models": list(self.enabled_models)
+        })
+
 
     def get_enabled_models(self) -> Dict[str, Type[InterfaceEvaluatedLLM]]:
         """

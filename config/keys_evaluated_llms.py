@@ -29,7 +29,10 @@ LOG_HISTORY_SIZE = 0
 # ============================
 
 OPENAI_GPT_4O = "gpt-4o"
-OPENAI_API_KEY_ENV = "OPENAI_API_KEY"
+GEMINI_1_5_PRO = "gemini-1.5-pro"
+GEMINI_1_5_FLASH = "gemini-1.5-flash"
+GEMINI_2_5_PRO = "gemini-2.5-pro"
+
 
 # ============================
 # Models Enabled for Benchmark
@@ -37,4 +40,6 @@ OPENAI_API_KEY_ENV = "OPENAI_API_KEY"
 
 ENABLED_BENCHMARK_MODELS = {
     OPENAI_GPT_4O,
+    GEMINI_1_5_PRO,
+    GEMINI_1_5_FLASH,
 }

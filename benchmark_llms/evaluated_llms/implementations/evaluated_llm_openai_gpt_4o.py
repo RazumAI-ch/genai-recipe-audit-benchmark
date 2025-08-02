@@ -1,14 +1,13 @@
-# File: benchmark_llms/evaluated_llm_openai.py
+# File: benchmark_llms/evaluated_llm_openai_gpt_4o.py
 
 import openai
-from typing import List, Dict
 
-import config.paths as config_paths
 from benchmark_llms.evaluated_llms.abstract_proprietary_evaluated_llm import AbstractProprietaryEvaluatedLLM
+
 import config.keys_evaluated_llms as config_keys_evaluated_llms
+import config.paths as config_paths
 
-
-class EvaluatedLLMOpenAI(AbstractProprietaryEvaluatedLLM):
+class EvaluatedLLMOpenAIGPT4o(AbstractProprietaryEvaluatedLLM):
     """
     Concrete implementation for OpenAI's GPT models.
     Uses the shared AbstractProprietaryEvaluatedLLM base for config, API key loading, and response parsing.
@@ -17,10 +16,9 @@ class EvaluatedLLMOpenAI(AbstractProprietaryEvaluatedLLM):
     ModelKey = config_keys_evaluated_llms.OPENAI_GPT_4O
 
     def __init__(self):
-        super().__init__(config_paths.PATH_CONFIG_OPENAI)
+        super().__init__(config_paths.PATH_CONFIG_OPENAI_GPT_4o)
 
     def _run_model_inference(self, records: list[dict]) -> str:
-        import openai
         client = openai.OpenAI(api_key=self.api_key)
 
         messages = [

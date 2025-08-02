@@ -6,6 +6,8 @@ __pycache__/
 # Environment and secrets
 .env
 .env.*
+secrets/*
+!secrets/.gitkeep
 
 # Local DB, logs, or backups
 *.sqlite3
@@ -40,3 +42,4 @@ archive/logs/*
 # Backups
 archive/backup/*
 !archive/backup/db-backup/.gitkeep
+

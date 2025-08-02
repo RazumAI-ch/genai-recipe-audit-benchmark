@@ -8,9 +8,8 @@ PATH_CONFIG_BENCHMARK_BASE = "config"
 PATH_CONFIG_PROMPT = f"{PATH_CONFIG_BENCHMARK_BASE}/prompts.yaml"
 
 # Individual LLM model configs
-PATH_CONFIG_OPENAI = f"{PATH_CONFIG_BENCHMARK_BASE}/evaluated_llm_configs/openai.yaml"
-# PATH_CONFIG_CLAUDE = f"{PATH_CONFIG_BENCHMARK_BASE}/evaluated_llm_configs/claude.yaml"
-# PATH_CONFIG_GEMINI = f"{PATH_CONFIG_BENCHMARK_BASE}/evaluated_llm_configs/gemini.yaml"
+PATH_CONFIG_OPENAI_GPT_4o = f"{PATH_CONFIG_BENCHMARK_BASE}/evaluated_llm_configs/openai_gpt_4o.yaml"
+PATH_CONFIG_GEMINI_1_5_PRO = f"{PATH_CONFIG_BENCHMARK_BASE}/evaluated_llm_configs/gemini_1_5_pro.yaml"
 
 
 # ============================
