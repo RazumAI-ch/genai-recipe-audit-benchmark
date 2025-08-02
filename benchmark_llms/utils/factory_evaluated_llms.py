@@ -5,6 +5,7 @@ import importlib.util
 import inspect
 import typing
 from typing import Type, Dict, Any
+from pathlib import Path
 
 import config.keys_evaluated_llms as config_keys_evaluated_llms
 from benchmark_llms.evaluated_llms.interface_evaluated_llm import InterfaceEvaluatedLLM
@@ -19,23 +20,22 @@ MODEL_REGISTRY: Dict[str, Type[InterfaceEvaluatedLLM]] = {}
 
 def _load_model_implementations():
     """
-    Dynamically loads all classes from 'implementations' that:
-    - Subclass InterfaceEvaluatedLLM (but are not the interface itself)
-    - Are not abstract (we assume concrete implementations only)
-    Registers via get_model_key()
+    Recursively loads all concrete model classes in 'implementations' and its subfolders.
+    - Only includes non-abstract subclasses of InterfaceEvaluatedLLM.
+    - Registers each by its get_model_key().
     """
     import config.paths as config_paths
-    impl_dir = config_paths.PATH_BENCHMARK_EVALUATED_LLM_IMPLEMENTATIONS  # Assuming you have this path constant defined
-    if not os.path.isdir(impl_dir):
+    impl_dir = Path(config_paths.PATH_BENCHMARK_EVALUATED_LLM_IMPLEMENTATIONS)
+
+    if not impl_dir.exists() or not impl_dir.is_dir():
         raise FileNotFoundError(f"Model implementation directory not found: {impl_dir}")
 
-
-    for filename in os.listdir(impl_dir):
-        if not filename.endswith(".py") or filename.startswith("_"):
+    for py_file in impl_dir.rglob("*.py"):
+        if py_file.name.startswith("_"):
             continue
 
-        module_name = filename[:-3]
-        module_path = os.path.join(impl_dir, filename)
+        module_name = py_file.stem
+        module_path = str(py_file.resolve())
 
         spec = importlib.util.spec_from_file_location(module_name, module_path)
         if not spec or not spec.loader:
@@ -53,7 +53,7 @@ def _load_model_implementations():
                 continue
 
             try:
-                model_key = cls.get_model_key()  # ✅ enforce interface usage
+                model_key = cls.get_model_key()
             except Exception as e:
                 raise TypeError(f"Class {cls.__name__} failed get_model_key(): {e}")
 
