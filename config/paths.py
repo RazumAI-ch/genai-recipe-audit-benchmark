@@ -28,7 +28,7 @@ PATH_LOGS = "archive/logs"
 # --- Long-Term Archive Logs
 PATH_LOGS_ARCHIVABLE = f"{PATH_LOGS}/archivable"
 PATH_LOGS_ARCHIVABLE_LLM_TRAINING = f"{PATH_LOGS_ARCHIVABLE}/llm_training"
-PATH_LOGS_ARCHIVABLE_BENCHMARK_RUNS = f"{PATH_LOGS_ARCHIVABLE}/benchmark_runs"  # optional use
+PATH_LOGS_ARCHIVABLE_BENCHMARK_RUNS = f"{PATH_LOGS_ARCHIVABLE}/benchmark_runs"
 
 # --- Temporary Logs (non-archivable)
 PATH_LOGS_EPHEMERAL = f"{PATH_LOGS}/ephemeral"
