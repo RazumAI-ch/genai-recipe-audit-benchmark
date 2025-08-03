@@ -5,7 +5,7 @@ from google import generativeai as genai
 
 from benchmark_llms.evaluated_llms.abstract_evaluated_llm_proprietary import AbstractEvaluatedLLMProprietary
 
-class AbstractEvaluatedLLMGemini(AbstractEvaluatedLLMProprietary, ABC):
+class AbstractEvaluatedLLM_Gemini(AbstractEvaluatedLLMProprietary, ABC):
     """
     Abstract base for all Gemini-evaluated LLMs (e.g., Gemini 1.5 Pro, Gemini 1.5 Flash).
     Handles shared Gemini logic: authentication and prompt submission.
