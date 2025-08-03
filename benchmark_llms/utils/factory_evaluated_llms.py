@@ -20,14 +20,15 @@ MODEL_REGISTRY: Dict[str, Type[InterfaceEvaluatedLLM]] = {}
 
 def _load_model_implementations():
     """
-    Recursively loads all concrete model classes in 'implementations' and its subfolders.
-    - Only includes non-abstract subclasses of InterfaceEvaluatedLLM.
-    - Registers each by its get_model_key().
+    Loads all final evaluated LLM implementations from the implementations folder.
+    A class is considered final if:
+    - It subclasses InterfaceEvaluatedLLM
+    - It defines 'ModelKey' directly (not inherited)
     """
     import config.paths as config_paths
     impl_dir = Path(config_paths.PATH_BENCHMARK_EVALUATED_LLM_IMPLEMENTATIONS)
 
-    if not impl_dir.exists() or not impl_dir.is_dir():
+    if not impl_dir.is_dir():
         raise FileNotFoundError(f"Model implementation directory not found: {impl_dir}")
 
     for py_file in impl_dir.rglob("*.py"):
@@ -45,17 +46,12 @@ def _load_model_implementations():
         spec.loader.exec_module(module)
 
         for _, cls in inspect.getmembers(module, inspect.isclass):
-            if cls is InterfaceEvaluatedLLM:
-                continue
             if not issubclass(cls, InterfaceEvaluatedLLM):
                 continue
-            if inspect.isabstract(cls):
+            if InterfaceEvaluatedLLM.REQUIRED_STATIC_FIELD not in cls.__dict__:
                 continue
 
-            try:
-                model_key = cls.get_model_key()
-            except Exception as e:
-                raise TypeError(f"Class {cls.__name__} failed get_model_key(): {e}")
+            model_key = cls.get_model_key()
 
             if model_key in MODEL_REGISTRY:
                 raise ValueError(f"Duplicate ModelKey detected: {model_key}")

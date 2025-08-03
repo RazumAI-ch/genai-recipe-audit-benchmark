@@ -10,7 +10,36 @@ class InterfaceEvaluatedLLM(ABC):
     Handles config loading and enforces prepare + batch eval contract.
     """
 
-    # Defines LLM Model
+    # =======================================================================
+    # REQUIRED_STATIC_FIELD
+    # -----------------------------------------------------------------------
+    # This constant defines the required static class variable that all
+    # final LLM implementations must declare locally in their class body.
+    #
+    # It is used by the model discovery system (factory_evaluated_llms.py)
+    # to:
+    #   - Identify which classes are final, concrete implementations
+    #   - Avoid registering abstract or intermediate base classes
+    #   - Enforce an explicit contract for model identity
+    #
+    # Why it's needed:
+    # - Python provides no clean way to mark a class as "final"
+    # - Python's ABC machinery does not apply to static class variables
+    # - `inspect.isabstract(cls)` is unreliable without forcing dummy abstract methods
+    # - `hasattr(cls, 'ModelKey')` includes inherited fields, which breaks discovery
+    #
+    # Instead, we check:
+    #     if InterfaceEvaluatedLLM.REQUIRED_STATIC_FIELD in cls.__dict__
+    #
+    # This ensures only classes that define ModelKey *directly* are registered.
+    #
+    # IMPORTANT:
+    # If you ever rename 'ModelKey', you must update this constant
+    # (and refactor its usage in the factory loader).
+    # =======================================================================
+    REQUIRED_STATIC_FIELD = "ModelKey"
+
+    # Static identifier for each final model implementation.
     ModelKey: str
 
 

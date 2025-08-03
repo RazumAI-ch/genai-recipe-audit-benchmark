@@ -1,4 +1,4 @@
-# File: benchmark_llms/abstract_base_evaluated_llm.py
+# File: benchmark_llms/abstract_evaluated_llm_base.py
 
 from abc import ABC
 import abc
@@ -12,7 +12,7 @@ import datetime
 from loggers.implementations.benchmark_log_manager import BenchmarkLogFileManager
 from benchmark_llms.utils.prompt_helpers import get_deviation_section_from_db
 
-class AbstractBaseEvaluatedLLM(InterfaceEvaluatedLLM, ABC):
+class AbstractEvaluatedLLMBase(InterfaceEvaluatedLLM, ABC):
     """
     Abstract base class for all concrete LLMs.
     Handles prompt config loading, model overrides, and shared setup logic.

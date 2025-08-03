@@ -2,15 +2,15 @@
 
 import openai
 
-from benchmark_llms.evaluated_llms.abstract_proprietary_evaluated_llm import AbstractProprietaryEvaluatedLLM
+from benchmark_llms.evaluated_llms.abstract_evaluated_llm_proprietary import AbstractEvaluatedLLMProprietary
 
 import config.keys_evaluated_llms as config_keys_evaluated_llms
 import config.paths as config_paths
 
-class EvaluatedLLMOpenAIGPT4o(AbstractProprietaryEvaluatedLLM):
+class EvaluatedLLMOpenAIGPT4o(AbstractEvaluatedLLMProprietary):
     """
     Concrete implementation for OpenAI's GPT models.
-    Uses the shared AbstractProprietaryEvaluatedLLM base for config, API key loading, and response parsing.
+    Uses the shared AbstractEvaluatedLLMProprietary base for config, API key loading, and response parsing.
     """
 
     ModelKey = config_keys_evaluated_llms.OPENAI_GPT_4O
