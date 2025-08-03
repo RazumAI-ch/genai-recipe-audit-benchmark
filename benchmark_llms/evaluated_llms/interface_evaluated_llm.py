@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
 import yaml
+import config.paths as config_paths
 
 class InterfaceEvaluatedLLM(ABC):
     """
@@ -43,7 +44,8 @@ class InterfaceEvaluatedLLM(ABC):
     ModelKey: str
 
 
-    def __init__(self, config_path: str):
+    def __init__(self):
+        config_path = f"{config_paths.PATH_EVALUATED_LLM_CONFIGS}/{self.get_model_key()}.yaml"
         self.model_config = self._load_config(config_path)
 
     def _load_config(self, path: str) -> dict:

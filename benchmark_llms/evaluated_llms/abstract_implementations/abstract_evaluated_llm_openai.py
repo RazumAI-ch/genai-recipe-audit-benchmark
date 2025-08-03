@@ -13,9 +13,6 @@ class AbstractEvaluatedLLMOpenAI(AbstractEvaluatedLLMProprietary, ABC):
     Handles OpenAI-specific inference logic using the `openai` SDK.
     """
 
-    def __init__(self):
-        super().__init__(config_paths.PATH_CONFIG_EVALUATED_LLM_OPENAI_GPT_4o)
-
     def _run_model_inference(self, records: list[dict]) -> str:
         client = openai.OpenAI(api_key=self.api_key)
 

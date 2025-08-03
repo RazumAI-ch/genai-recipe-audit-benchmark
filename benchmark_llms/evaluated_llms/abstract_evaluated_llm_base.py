@@ -18,12 +18,12 @@ class AbstractEvaluatedLLMBase(InterfaceEvaluatedLLM, ABC):
     Handles prompt config loading, model overrides, and shared setup logic.
     """
 
-    def __init__(self, model_config: Dict[str, Any]):
+    def __init__(self):
         """
         Initialize the LLM with a static config loaded from YAML.
         The config may later be updated with runtime overrides.
         """
-        super().__init__(model_config)
+        super().__init__()
         self.prompt_config = {}
         self.system_prompt = ""
         self.user_prompt_prefix = ""

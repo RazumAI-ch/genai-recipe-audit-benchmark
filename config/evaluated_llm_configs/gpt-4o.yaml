@@ -1,4 +1,4 @@
-# File: config/openai_gpt_4o.yaml
+# File: config/gpt-4o.yaml
 
 provider: openai
 model: gpt-4o

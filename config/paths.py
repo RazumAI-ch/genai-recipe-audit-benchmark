@@ -1,7 +1,5 @@
-# File: config/paths.py
-
 # ============================
-# Benchmark LLM Configuration Paths
+# Config: YAML Input Files
 # ============================
 
 PATH_CONFIG_BASE = "config"
@@ -9,17 +7,20 @@ PATH_CONFIG_BASE = "config"
 # --- Prompt Configuration (YAML)
 PATH_CONFIG_PROMPT = f"{PATH_CONFIG_BASE}/prompts.yaml"
 
-# --- Model Configuration Files (YAML per LLM)
-PATH_CONFIG_EVALUATED_LLM_OPENAI_GPT_4o = f"{PATH_CONFIG_BASE}/evaluated_llm_configs/openai_gpt_4o.yaml"
-PATH_CONFIG_EVALUATED_LLM_GEMINI_1_5_PRO = f"{PATH_CONFIG_BASE}/evaluated_llm_configs/gemini_1_5_pro.yaml"
-PATH_CONFIG_EVALUATED_LLM_GEMINI_1_5_FLASH = f"{PATH_CONFIG_BASE}/evaluated_llm_configs/gemini_1_5_flash.yaml"
+# --- Folder where per-LLM configs are found (must match ModelKey)
+PATH_EVALUATED_LLM_CONFIGS = f"{PATH_CONFIG_BASE}/evaluated_llm_configs"
 
-# --- Python Class Implementations (LLM code)
+
+# ============================
+# Implementation: Python Model Classes
+# ============================
+
+# --- Folder containing all final evaluated LLM implementation classes
 PATH_BENCHMARK_EVALUATED_LLM_IMPLEMENTATIONS = "benchmark_llms/evaluated_llms/implementations"
 
 
 # ============================
-# Benchmark Logging Paths
+# Output: Logging and Artifacts
 # ============================
 
 # --- Root Log Folder

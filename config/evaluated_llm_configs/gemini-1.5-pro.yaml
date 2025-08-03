@@ -1,4 +1,4 @@
-# File: config/evaluated_llm_configs/gemini_1_5_pro.yaml
+# File: config/evaluated_llm_configs/gemini-1.5-pro.yaml
 
 model: gemini-1.5-pro
 batch_size: 10
