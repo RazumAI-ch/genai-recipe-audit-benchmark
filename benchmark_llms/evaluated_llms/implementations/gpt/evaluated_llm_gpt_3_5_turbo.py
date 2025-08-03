@@ -1,4 +1,4 @@
-# File: benchmark_llms/evaluated_llm_openai_gpt_4o.py
+# File: benchmark_llms/evaluated_llm_gpt_4o.py
 
 from benchmark_llms.evaluated_llms.abstract_implementations.abstract_evaluated_llm_gpt import AbstractEvaluatedLLM_GPT
 
