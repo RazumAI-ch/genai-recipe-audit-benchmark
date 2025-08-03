@@ -24,14 +24,23 @@ class AbstractEvaluatedLLMBase(InterfaceEvaluatedLLM, ABC):
         The config may later be updated with runtime overrides.
         """
         super().__init__()
+        config_path = f"{config_paths.PATH_EVALUATED_LLM_CONFIGS}/{self.get_model_key()}.yaml"
+        self.model_config = self._load_config(config_path)
         self.prompt_config = {}
         self.system_prompt = ""
         self.user_prompt_prefix = ""
         self.model = None
         self.batch_size = None
         self.temperature = config_keys_evaluated_llms.LLM_TEMPERATURE
-        self.max_tokens = config_keys_evaluated_llms.LLM_MAX_TOKENS_DEFAULT
+        self.max_tokens = self.model_config.get("max_tokens", config_keys_evaluated_llms.LLM_MAX_TOKENS_DEFAULT)
         self.logger = BenchmarkLogFileManager(self.get_model_key())
+
+    def _load_config(self, path: str) -> dict:
+        """
+        Load model configuration from a YAML file.
+        """
+        with open(path, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f)
 
     def prepare(self, overrides: Dict[str, Any] = None):
         """

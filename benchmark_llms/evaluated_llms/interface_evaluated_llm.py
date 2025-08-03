@@ -43,18 +43,6 @@ class InterfaceEvaluatedLLM(ABC):
     # Static identifier for each final model implementation.
     ModelKey: str
 
-
-    def __init__(self):
-        config_path = f"{config_paths.PATH_EVALUATED_LLM_CONFIGS}/{self.get_model_key()}.yaml"
-        self.model_config = self._load_config(config_path)
-
-    def _load_config(self, path: str) -> dict:
-        """
-        Load model configuration from a YAML file.
-        """
-        with open(path, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f)
-
     @abstractmethod
     def prepare(self, overrides: Dict[str, Any] = None) -> None:
         """
