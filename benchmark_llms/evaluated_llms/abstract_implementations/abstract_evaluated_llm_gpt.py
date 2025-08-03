@@ -3,11 +3,11 @@
 import openai
 from abc import ABC
 
-from benchmark_llms.evaluated_llms.abstract_evaluated_llm_proprietary import AbstractEvaluatedLLMProprietary
+from benchmark_llms.evaluated_llms.abstract_evaluated_llm_api_access import AbstractEvaluatedLLM_APIAccess
 from config import paths as config_paths
 
 
-class AbstractEvaluatedLLM_GPT(AbstractEvaluatedLLMProprietary, ABC):
+class AbstractEvaluatedLLM_GPT(AbstractEvaluatedLLM_APIAccess, ABC):
     """
     Abstract base class for all OpenAI models (e.g., GPT-4o, GPT-4 Turbo, GPT-3.5).
     Handles OpenAI-specific inference logic using the `gpt` SDK.

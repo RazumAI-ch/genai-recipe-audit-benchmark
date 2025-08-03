@@ -1,4 +1,4 @@
-# File: benchmark_llms/abstract_evaluated_llm_proprietary.py
+# File: benchmark_llms/abstract_evaluated_llm_api_access.py
 
 import os
 from abc import ABC
@@ -8,7 +8,7 @@ import benchmark_llms.utils.utils as utils
 from config.keys_evaluated_llms import API_KEY_ENV
 
 
-class AbstractEvaluatedLLMProprietary(AbstractEvaluatedLLMBase, ABC):
+class AbstractEvaluatedLLM_APIAccess(AbstractEvaluatedLLMBase, ABC):
     """
     Abstract base class for proprietary (closed-source) LLMs.
     Handles shared setup logic like loading API keys.

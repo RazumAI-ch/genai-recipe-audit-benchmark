@@ -33,6 +33,7 @@ GPT_35_TURBO = "gpt-3.5-turbo"
 GEMINI_1_5_PRO = "gemini-1.5-pro"
 GEMINI_1_5_FLASH = "gemini-1.5-flash"
 GEMINI_2_5_PRO = "gemini-2.5-pro"
+MISTRAL_7B_INSTRUCT = "mistral-7b-instruct"
 
 
 # ============================
