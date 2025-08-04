@@ -1,5 +1,22 @@
 # File: benchmark_llms/evaluated_llms/abstract_implementations/abstract_evaluated_llm_vultr.py
 
+# ==============================================================================
+# AbstractEvaluatedLLMVultr
+# ------------------------------------------------------------------------------
+# This abstract class provides the Vultr-specific implementation for making
+# OpenAI-compatible chat completions via Vultr Serverless Inference API.
+#
+# It inherits API key management from AbstractEvaluatedLLM_APIAccess and focuses
+# only on HTTP communication with the Vultr endpoint.
+#
+# Any model (e.g., Mistral, LLaMA, DeepSeek) that is currently served via Vultr
+# should inherit from a provider-agnostic abstract class (e.g., AbstractEvaluatedLLMMistral)
+# which in turn inherits from this class.
+#
+# If we later migrate to a different provider (e.g., TogetherAI), only the
+# intermediate abstract class needs to change—not each individual model file.
+# ==============================================================================
+
 import requests
 from abc import ABC
 from benchmark_llms.evaluated_llms.abstract_evaluated_llm_api_access import AbstractEvaluatedLLM_APIAccess

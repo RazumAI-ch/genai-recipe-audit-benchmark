@@ -1,13 +1,13 @@
-# 🧪 GenAI Recipe Audit Benchmark
+# 🔪 GenAI Recipe Audit Benchmark
 
-A reproducible benchmark for evaluating how well large language models identify, classify, and explain GxP-relevant deviations in pharmaceutical manufacturing recipes. Designed for regulatory-grade infrastructure auditing with both proprietary and open models.
+A reproducible benchmark for evaluating how well large language models identify, classify, and explain GxP-relevant deviations in pharmaceutical manufacturing recipes. Designed for regulatory-grade infrastructure auditing with closed, open, and self-trained proprietary models.
 
 ---
 
-## 🎯 Project Goals
+## 🌟 Project Goals
 
 - Evaluate generalization of LLMs to regulated pharmaceutical auditing
-- Measure impact of LoRA and full retraining on deviation detection
+- Measure impact of LoRA, full retraining, and from-scratch training on deviation detection
 - Compare cost-effectiveness and speed per model
 - Build reproducible scientific infrastructure for regulatory-grade evaluation
 
@@ -16,7 +16,7 @@ A reproducible benchmark for evaluating how well large language models identify,
 ## 🔧 Capabilities
 
 - Generate synthetic recipe samples with injected, documented ALCOA+ deviations (2% of records)
-- Evaluate across top LLMs (OpenAI, Claude, Gemini, Mistral, etc.)
+- Evaluate across top LLMs (OpenAI, Claude, Gemini, Mistral, RazumAI, etc.)
 - Benchmark both open and fine-tuned models
 - Score detection and classification performance per model
 - Fully reproducible with Docker + PostgreSQL + Makefile
@@ -25,20 +25,17 @@ A reproducible benchmark for evaluating how well large language models identify,
 
 ## 📋 GxP Benchmark Overview
 
-This project provides an end-to-end benchmark to evaluate how well generative AI models identify GxP-relevant deviations in pharmaceutical manufacturing recipes. Our focus is on six scoring dimensions:
+This project provides an end-to-end benchmark to evaluate how well generative AI models identify GxP-relevant deviations in pharmaceutical manufacturing recipes. Our focus is on three scoring dimensions:
 
-| Score     | Scope                                                | Availability  |
-|-----------|------------------------------------------------------|---------------|
-| **GxP1**  | ALCOA+ violation identification                      | ✅ Open source |
-| **GxP2**  | ALCOA+ violation classification                      | ✅ Open source |
-| **GxP3**  | Recipe logic consistency deviation identification    | 🔒 Commercial  |
-| **GxP4**  | Recipe logic consistency deviation classification    | 🔒 Commercial  |
-| **GxP5**  | Execution trace deviation identification             | 🔒 Commercial  |
-| **GxP6**  | Execution trace deviation classification             | 🔒 Commercial  |
+| Score     | Scope                                                       | Availability  |
+|-----------|-------------------------------------------------------------|---------------|
+| **GxP1**  | ALCOA+ deviation detection & classification                | ✅ Open source |
+| **GxP2**  | Recipe logic consistency deviation detection & classification | ❌ Future release |
+| **GxP3**  | Execution trace deviation detection & classification        | ❌ Future release |
 
 ---
 
-## 📊 GxP1 & GxP2 Scoring Explained
+## 📊 GxP1 Scoring Explained
 
 The benchmark dataset is synthetically generated in a controlled way. We know exactly:
 
@@ -117,11 +114,9 @@ Planned:
 - Mistral 7B
 - Mixtral 8x7B
 
-### Full Retraining (Selective)
+### Models Trained from Scratch
 
-- TinyLlama 1.1B (baseline done)
-- Phi-2
-- Possibly: Qwen 7B or Yi 6B
+- **RazumAI GXP-1** (TinyLlama architecture, trained from scratch)
 
 ---
 
@@ -178,18 +173,19 @@ python main.py
 
 ### LLM Integration
 - OpenAI, Claude, Gemini (API-based proprietary models)
-- TinyLlama 1.1B (LoRA fine-tuned open model)
+- TinyLlama / RazumAI GXP-1 (trained models)
 
 ---
 
-## 📑 Licensing & Reuse
+## 📁 Licensing & Reuse
 
-- GxP1 and GxP2 logic is fully open-source
-- GxP3–6 logic is commercial due to proprietary execution trace data
+- GxP1 scoring logic is fully open-source
+- GxP2 and GxP3 logic will be included in future extensions
+- Models trained from scratch (e.g., RazumAI GXP-1) are not included in the open-source repo, but infrastructure to replicate training is
 
 ---
 
-## 🏁 Final Notes
+## 🏑 Final Notes
 
 - All deviation types are explicitly tied to ALCOA+ principles
 - Benchmark is reproducible, automatable, and extensible
