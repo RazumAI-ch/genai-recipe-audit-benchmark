@@ -1,0 +1,50 @@
+# File: config/models.yaml
+# See docs/CONFIG.md for the agreement/spec; this version must match CONFIG.md.
+version: "0.2.0"  # UNIQUE_ID: config/models.yaml:version
+
+# These defaults apply to all models unless overridden in provider_defaults or models.
+global_model_defaults:
+  temperature: 0.0
+  max_tokens: 2048
+  # By default all models are enabled; set enabled: false under a model to disable it.
+  enabled: true
+
+provider_defaults:
+  OPENAI:
+    batch_size: 20
+  VERTEX_AI:
+    batch_size: 10
+  VULTR:
+    batch_size: 50
+
+# Each model must specify provider and model_id.
+# If overriding any default, add a short comment above the key explaining the reason.
+models:
+  EVALUATED_LLM_OPENAI_GPT_4O:
+    provider: OPENAI
+    model_id: "gpt-4o"
+
+  EVALUATED_LLM_GPT_3_5_TURBO:
+    provider: OPENAI
+    model_id: "gpt-3.5-turbo"
+
+  EVALUATED_LLM_GEMINI_1_5_PRO:
+    provider: VERTEX_AI
+    model_id: "gemini-1.5-pro"
+
+  EVALUATED_LLM_GEMINI_1_5_FLASH:
+    provider: VERTEX_AI
+    model_id: "gemini-1.5-flash"
+
+  EVALUATED_LLM_MISTRAL_7B_INSTRUCT:
+    provider: VULTR
+    model_id: "Mistral-7B-Instruct-v0.3"  # canonical model name, provider maps internally
+    # Override: reduced max_tokens from global default (2048) to 1536.
+    # Reason: matches provider deployment limit; prevents request errors.
+    max_tokens: 1536
+
+  EVALUATED_LLM_GEMINI_2_5_PRO:
+    provider: VERTEX_AI
+    model_id: "gemini-2.5-pro"
+    # Disabled via config; the factory/runner must skip this model.
+    enabled: false

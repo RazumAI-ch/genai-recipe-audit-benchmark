@@ -41,5 +41,5 @@ archive/logs/*
 
 # Backups
 archive/backup/*
-!archive/backup/db-backup/.gitkeep
+!archive/backup/db_backup/.gitkeep
 

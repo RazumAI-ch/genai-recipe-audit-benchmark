@@ -16,21 +16,21 @@ export
 
 NUM=$(word 2,$(MAKECMDGOALS))
 
-run: _clear _run-unit-tests
+run: _clear _backup-project _run-unit-tests
 	docker-compose run --remove-orphans cli python main.py $(NUM)
 
 # ============================================
 # SQL Utilities
 # ============================================
 
-psql:
+psql: _backup-project
 	docker compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 
 # ============================================
 # PostgreSQL Container Lifecycle
 # ============================================
 
-backup-db: _clear _run-unit-tests _refresh-schema-docs _save-to-backup-file _copy-latest-db-to-archive _archive-latest-logs
+backup-db: _clear _backup-project _archive-latest-logs _run-unit-tests _refresh-schema-docs _save-to-backup-file _copy-latest-db-to-archive
 	@echo "Resetting DB and restoring schema..."
 	@$(MAKE) _recreate_empty_db
 	@$(MAKE) _import-from-archive
@@ -51,23 +51,29 @@ _recreate_empty_db:
 # ============================================
 
 _save-to-backup-file: _wait-for-db
-	@mkdir -p archive/backup/db-backup
+	@mkdir -p archive/backup/db_backup
 	@TIMESTAMP=$$(date "+%Y-%m-%d_%H-%M") && \
-	FILE="archive/backup/db-backup/$${TIMESTAMP}_benchmarkdb_$(SCHEMA_VERSION).sql.gz" && \
+	FILE="archive/backup/db_backup/$${TIMESTAMP}_benchmarkdb_$(SCHEMA_VERSION).sql.gz" && \
 	docker exec genai-recipe-audit-benchmark-db-1 \
 	pg_dump -U $(POSTGRES_USER) -d $(POSTGRES_DB) | gzip > "$$FILE" && \
-	ls -1t archive/backup/db-backup/*.sql.gz | tail -n +21 | xargs rm -f --
+	ls -1t archive/backup/db_backup/*.sql.gz | tail -n +21 | xargs rm -f --
+
+# NOTE: keep gzip extension end-to-end to avoid format confusion
+_copy-latest-db-to-archive:
+	@mkdir -p archive
+	@LATEST=$$(ls -t archive/backup/db_backup/*.sql.gz | head -n 1) && \
+	cp "$$LATEST" archive/db-latest.sql.gz
 
 _import-from-archive:
-	@FILE="archive/db-archive.zip"; \
+	@FILE="archive/db-latest.sql.gz"; \
 	USER="$(POSTGRES_USER)"; \
 	DB="$(POSTGRES_DB)"; \
 	gunzip -c "$$FILE" | docker exec -i genai-recipe-audit-benchmark-db-1 \
 	psql -q -U "$$USER" -d "$$DB" > /dev/null
 
 # Import any .gz backup by specifying FILE=...
-# Example: make import-utils_db-adhoc FILE=archive/backup/utils_db-backup/2025-07-26_19-46.gz
-import-db-adhoc: _clear
+# Example: make import-db-adhoc FILE=archive/backup/db_backup/2025-07-26_19-46.sql.gz
+import-db-adhoc: _clear _backup-project
 	@echo "Resetting DB before importing ad-hoc backup..."
 	@$(MAKE) _recreate_empty_db
 	@gunzip -c "$(FILE)" | docker exec -i genai-recipe-audit-benchmark-db-1 \
@@ -98,17 +104,9 @@ _refresh-schema-docs:
 	fi
 
 # Fix all PostgreSQL sequences to match current data state
-# When dropping and restoring the DB from a backup, Postgres does not automatically
-# reset sequences (like sample_records_id_seq, injected_deviations_id_seq, etc.)
-# to align with the current max(id) values in their respective tables.
-# This target runs a script that resets all sequences to prevent primary key conflicts.
 _fix-sequences:
 	docker compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -f /app/db/makefile_db_scripts/fix_all_sequences.sql
 
-# Ensures schema_docs entries are grouped by table and sorted by column name
-# This improves readability when querying schema_docs directly,
-# making it easier to view or edit all fields for a specific table.
-# Especially useful after adding new fields, which would otherwise appear at the end.
 _sort-schema-docs:
 	docker compose exec db psql -q -U $(POSTGRES_USER) -d $(POSTGRES_DB) -f /app/db/makefile_db_scripts/sort_schema_docs.sql > /dev/null
 
@@ -119,17 +117,33 @@ _show-db-stats:
 	FROM pg_stat_user_tables ORDER BY relname;"
 
 # ============================================
-# Archiving of utils_db and logs
+# Archiving of DB and logs
 # ============================================
 
-_copy-latest-db-to-archive:
-	@mkdir -p archive
-	@LATEST=$$(ls -t archive/backup/db-backup/*.sql.gz | head -n 1) && \
-	cp "$$LATEST" archive/db-archive.zip
-
 _archive-latest-logs:
-	@mkdir -p archive
-	@cd archive/logs && zip -r ../../archive/logs-archive.zip archivable > /dev/null 2>&1
+	@BASE="archive/backup/logs_backup"; \
+	mkdir -p "$$BASE"; \
+	OUT_FILE="$$BASE/latest_logs.zip"; \
+	mkdir -p archive/logs/archivable; \
+	echo "Creating logs archive: $$OUT_FILE"; \
+	cd archive/logs && zip -r "$$PWD/../backup/logs_backup/latest_logs.zip" archivable > /dev/null 2>&1
+
+# ============================================
+# Project Code & Config Archive
+# ============================================
+
+_backup-project:
+	@BASE="archive/backup/project_code_and_config_backup"; \
+	mkdir -p "$$BASE"; \
+	OUT_FILE="$$BASE/latest_project_code_and_config.zip"; \
+	FOLDERS="benchmark_llms config db docs loggers train_llms unit_tests"; \
+	INCLUDE=""; \
+	for d in $$FOLDERS; do \
+	  if [ -d "$$d" ]; then INCLUDE="$$INCLUDE $$d"; fi; \
+	done; \
+	ROOT_FILES=$$(find . -maxdepth 1 -type f -not -name "*.zip"); \
+	echo "Creating project archive: $$OUT_FILE"; \
+	zip -r "$$OUT_FILE" $$INCLUDE $$ROOT_FILES > /dev/null
 
 # ============================================
 # Training
@@ -181,15 +195,12 @@ check-training-llm-sources:
 	psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "\
 	SELECT id, source_llm FROM training_examples ORDER BY id DESC LIMIT 10;"
 
-
 # ============================================
 # Unit Testing
 # ============================================
 
 _run-unit-tests:
-	@echo "Running all unit tests..."
 	docker-compose run --rm --remove-orphans cli python -m unit_tests.runner_unit_tests
-
 
 # ============================================
 # Utils
@@ -198,11 +209,12 @@ _run-unit-tests:
 _clear:
 	@printf "\033c"
 
-# Catch-all rule to prevent errors on extra CLI arguments
 %:
 	@:
 
+# ============================================
 # PHONY Targets
+# ============================================
 
 .PHONY: run psql backup-db docker-stats train-lora-tinyllama tail-lora-log \
         track-lora-progress generate-training-examples check-training-data \
@@ -210,4 +222,4 @@ _clear:
         check-training-llm-sources import-db-adhoc _clear \
         _wait-for-db _recreate_empty_db _save-to-backup-file _import-from-archive \
         _refresh-schema-docs _sort-schema-docs _fix-sequences _show-db-stats \
-        _copy-latest-db-to-archive _archive-latest-logs _run-unit-tests
+        _archive-latest-logs _run-unit-tests _backup-project
