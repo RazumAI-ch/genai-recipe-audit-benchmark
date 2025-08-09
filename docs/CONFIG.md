@@ -1,173 +1,146 @@
-# File: docs/CONFIG.md
+File: docs/CONFIG.md
 
-# CONFIG.md – Configuration Specification (Agreement Version)
+CONFIG.md – Configuration Specification (Agreement Version)
 
-## Scope
+Scope
 
-This document defines the **agreement/spec** that governs how LLM model configs are structured, interpreted, and evaluated in this repository, including full benchmark scoring logic.
+This document defines the agreement/spec governing how the GenAI Recipe Audit Benchmark is structured, configured, and evaluated, including benchmark scoring logic, architecture, and future evaluation tracks.
+	•	Authoritative data file: config/models.yaml
+	•	Authoritative version field: config/models.yaml:version
+	•	This document mirrors that version and contains all rules, policies, and logic required to implement or interpret the benchmark.
 
-* **Authoritative data file:** `config/models.yaml`
-* **Authoritative version field:** `config/models.yaml:version`
-* **This document mirrors that version** and contains all rules, policies, and logic required to implement or interpret the benchmark.
+⸻
 
----
+Agreement vs. Application Version
+	•	Agreement/Spec version (this document + models.yaml:version): the contract for fields, merge rules, scoring rules, architecture, and repo-wide policies.
+	•	Application/release version: the overall software version of the benchmark system (tracked separately, e.g., Git tags). Independent from the agreement/spec version.
 
-## Agreement vs. Application Version
+⸻
 
-* **Agreement/Spec version** (this document + `models.yaml:version`): the contract for fields, merge rules, scoring rules, and repo-wide policies.
-* **Application/release version**: the overall software version of the benchmark system (tracked separately, e.g., Git tags). It is **independent** from the agreement/spec version.
+Spec Versioning
 
----
+Current spec version: 0.1.0
+Canonical source: version field in config/models.yaml.
 
-## Spec Versioning
+Covers:
+	1.	config/models.yaml schema and merge rules
+	2.	Scoring logic
+	3.	System architecture layers
+	4.	Future track definitions (GxP2, GxP3)
+	5.	Repository-wide policies
 
-**Current spec version:** `0.2.0`
-**Canonical source:** the `version` field in `config/models.yaml`.
-This CONFIG.md must **match** that value.
+When to bump:
+	•	MAJOR (X.0.0) – Breaking changes to schema or scoring logic
+	•	MINOR (0.X.0) – Backward-compatible schema/policy updates or new optional fields/tracks
+	•	PATCH (0.1.X) – Clarifications or typos
 
-### What the spec version covers
+⸻
 
-1. The structure and fields of `config/models.yaml`
-2. The merge/precedence semantics defined here
-3. Benchmark scoring logic
-4. Repository-wide rules affecting config interpretation
+Merge Precedence
+	1.	global_model_defaults
+	2.	provider_defaults[provider]
+	3.	models[MODEL_KEY]
 
-### When to bump
+No default provider — every model must explicitly set provider.
 
-* **MAJOR (X.0.0)** – Backward-incompatible changes to schema or scoring logic
-* **MINOR (0.X.0)** – Backward-compatible updates, new optional fields, or scoring adjustments
-* **PATCH (0.1.X)** – Clarifications/typos that don’t alter behavior
+⸻
 
-Any change to scoring methodology or evaluation logic must trigger a spec version bump.
-
-### Validation rule
-
-CI/loader must check:
-`config/models.yaml:version == docs/CONFIG.md:Current spec version`
-If mismatch → fail CI or emit an error.
-
----
-
-## Action and Dependency Markers
-
-All conditional actions must use:
-
-```
-ACTION:<ACTION_NAME>; REF=config/models.yaml:version; WHEN:<comparison><semver>; NOTE:<free text>
-```
-
-Example:
-
-```python
-LLM_TEMPERATURE = 0.0  # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0; NOTE: Use global_model_defaults.temperature from YAML
-```
-
----
-
-## File naming and extensions
-
-* Use `.yaml` across the repository (not `.yml`).
-* Canonical config path: `config/models.yaml`.
-
----
-
-## Merge Precedence
-
-Lowest → highest:
-
-1. `global_model_defaults`
-2. `provider_defaults[provider]`
-3. `models[MODEL_KEY]`
-
-No default provider — each model must explicitly set `provider`.
-
----
-
-## Required Fields per Model
-
-* `provider` — must match `provider_defaults`
-* `model_id` — canonical model identifier (provider-neutral format; provider maps internally)
+Required Fields per Model
+	•	provider — must match provider_defaults
+	•	model_id — canonical model identifier (provider-neutral; provider maps internally)
 
 Optional overrides:
+	•	temperature
+	•	max_tokens
+	•	batch_size
+	•	enabled
 
-* `temperature`
-* `max_tokens`
-* `batch_size`
-* `enabled`
+⸻
 
----
+Provider-specific Rules for model_id
+	•	OPENAI: OpenAI public model name (gpt-4o)
+	•	VERTEX_AI: Vertex model name (gemini-1.5-pro)
+	•	VULTR: Canonical neutral model name (Mistral-7B-Instruct-v0.3); provider maps internally to API-specific string.
 
-## Provider-specific rules for `model_id`
+⸻
 
-* **OPENAI**: OpenAI public model name (`gpt-4o`)
-* **VERTEX\_AI**: Vertex model name (`gemini-1.5-pro`)
-* **VULTR**: Canonical neutral model name (`Mistral-7B-Instruct-v0.3`); provider maps internally to API-specific name
+Access Method Policy
 
----
+No config field for API vs. deployment — provider implementation decides. Keeps models.yaml provider-agnostic; allows execution method changes without altering config. Execution method is logged but not used in ranking.
 
-## Access Method Policy
+⸻
 
-No config field for API vs. deployment — provider implementation decides. This keeps `models.yaml` provider-agnostic and allows execution method changes without altering configuration. Execution method is logged for informational purposes but not used for ranking.
+Scoring Logic – GxP1
 
----
+GxP1 evaluates model ability to detect and classify GxP-relevant deviations in structured recipe records according to ALCOA+ principles:
+	•	Attributable, Legible, Contemporaneous, Original, Accurate, Complete, Consistent, Enduring, Available.
 
-## Scoring Logic – GxP1
+Penalty Rules:
+	•	Correct detection, correct severity: No penalty
+	•	Correct detection, incorrect severity: Penalty = difference in severity weight
+	•	Missed deviation: Penalty = full severity weight
+	•	Hallucinated deviation: Penalty = predicted severity weight
 
-GxP1 scoring evaluates a model’s ability to **detect and classify** ALCOA+ deviations.
+Severity Weights:
+	•	Minor: 1
+	•	Medium: 10
+	•	Critical: 100
 
-### Penalty Rules
+Formula:
 
-* **Correct detection, correct severity:** No penalty
-* **Correct detection, incorrect severity:** Penalty = difference in severity weight
-* **Missed deviation:** Penalty = full severity weight
-* **Hallucinated deviation:** Penalty = predicted severity weight
-
-### Severity Weights
-
-* Minor: 1
-* Medium: 10
-* Critical: 100
-
-### Final Score Calculation
-
-```
 GxP1_Score = 1.0 − (P_model / P_worst)
-```
 
 Where:
-
-* `P_model` = total penalty for the evaluated model
-* `P_worst` = highest penalty among all models in the run
+	•	P_model = total penalty for the model
+	•	P_worst = highest penalty in the run
 
 Score range:
+	•	1.0 → perfect detection and classification
+	•	0.0 → worst performance in the run
 
-* **1.0** → perfect detection & classification
-* **0.0** → worst model in the run
+Example:
+	•	Medium deviation flagged as Minor → penalty = |10 − 1| = 9
+	•	Critical deviation missed → penalty = 100
+	•	Medium deviation hallucinated → penalty = 10
+	•	P_model = 119, P_worst = 238 → score = 1 − (119/238) = 0.5
 
-### Worked Example
+⸻
 
-1. Record contains one Medium deviation (weight 10)
-2. Model flags it as Minor (weight 1) → penalty = |10 - 1| = 9
-3. Model misses another Critical deviation (weight 100) → penalty = 100
-4. Model hallucinates a Medium deviation → penalty = 10
-5. `P_model` = 9 + 100 + 10 = 119
-6. If `P_worst` = 238, then:
+System Architecture Overview
 
-```
-GxP1_Score = 1.0 - (119 / 238) = 1.0 - 0.5 = 0.5
-```
+The benchmark system is modular and containerized for reproducibility, traceability, and maintainability.
 
----
+Layers:
+	1.	PostgreSQL Database – Stores sample records, deviations, configs, results, and metadata with referential integrity and version tracking.
+	2.	Model Integration Layer – Common wrapper for proprietary and open models, handling auth, prompts, batching, parsing.
+	3.	Prompt Configuration & Evaluation Logic – Central YAML prompt definitions; parses model outputs; computes scores.
+	4.	Deviation Injection Engine – Generates synthetic deviations in clean records with full metadata.
+	5.	Benchmark Runner – Orchestrates dataset load, model execution, logging, result storage.
+	6.	Training Module – Supports LoRA and full fine-tuning on synthetic GxP data; logs tokens, loss, duration; outputs adapters.
+	7.	Output & Reporting Engine – Produces JSON summaries, logs, and archives; future PDF/dashboards.
 
-## Implied Connections
+⸻
 
-For API providers, the environment must contain `{PROVIDER_KEY}_API_KEY`.
+Future Tracks
 
----
+GxP2 – Recipe Logic Consistency Analysis
+	•	Evaluates violations of recipe logic across records (e.g., step order, durations, missing phases).
+	•	Tests multi-step reasoning and context beyond isolated records.
 
-## Example Configuration
+GxP3 – Execution Log Deviation Detection
+	•	Evaluates execution-time anomalies in logs (e.g., operator mismatch, unexpected step re-entry, delays).
+	•	Targets temporal and behavioral trace validation.
 
-```yaml
+⸻
+
+Implied Connections
+
+For API providers, the environment must contain {PROVIDER_KEY}_API_KEY.
+
+⸻
+
+Example Configuration
+
 # File: config/models.yaml
 version: "0.1.0"  # UNIQUE_ID: config/models.yaml:version
 
@@ -193,12 +166,10 @@ models:
     provider: VULTR
     model_id: "Mistral-7B-Instruct-v0.3"
     max_tokens: 1536
-```
 
----
 
-## Deprecations and migration to YAML-only
+⸻
 
-* Python-side registry constants and static enable/disable sets are being removed.
-* The single source of truth for model availability, identifiers, and scoring rules is `config/models.yaml` + `docs/CONFIG.md`.
-* All deferred or conditional changes must use the `ACTION:` marker format.
+Deprecations
+
+Python-side constants and static enable/disable sets are being removed. Single source of truth for model availability, identifiers, and scoring rules is config/models.yaml + docs/CONFIG.md.
