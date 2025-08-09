@@ -1,9 +1,6 @@
-# File: docs/CONFIG.md
-
 CONFIG.md – Configuration Specification (Agreement Version)
 
 Scope
-
 This document defines the agreement/spec governing how the GenAI Recipe Audit Benchmark is structured, configured, and evaluated, including benchmark scoring logic, architecture, and future evaluation tracks.
 
 * Authoritative data file: config/models.yaml
@@ -16,7 +13,6 @@ Agreement vs. Application Version
 * Application/release version: the overall software version of the benchmark system (tracked separately, e.g., Git tags). Independent from the agreement/spec version.
 
 Spec Versioning
-
 Current spec version: 0.2.0
 Canonical source: version field in config/models.yaml.
 
@@ -55,19 +51,18 @@ Optional overrides:
 * enabled
 
 Model Key Naming Convention
-All keys under `models:` must follow the format:
-
-```
-EVALUATED_LLM_<MODEL_NAME>
-```
-
-Where `<MODEL_NAME>` is the canonical model name in uppercase, with hyphens replaced by underscores.
+All keys under models: must follow the format:
+EVALUATED\_LLM\_\<MODEL\_NAME>
+Where \<MODEL\_NAME> is the canonical model name in uppercase, with hyphens replaced by underscores.
 
 Provider-specific Rules for model
 
 * OPENAI: OpenAI public model name (gpt-4o)
 * VERTEX\_AI: Vertex model name (gemini-1.5-pro)
 * VULTR: Canonical neutral model name (Mistral-7B-Instruct-v0.3); provider maps internally to API-specific string.
+
+Capitalization Rule
+Capitalization in model IDs must match canonical provider-neutral names exactly.
 
 Access Method Policy
 No config field for API vs. deployment — provider implementation decides. Keeps models.yaml provider-agnostic; allows execution method changes without altering config. Execution method is logged but not used in ranking.
@@ -91,11 +86,7 @@ Severity Weights:
 * Critical: 100
 
 Formula:
-
-```
-GxP1_Score = 1.0 − (P_model / P_worst)
-```
-
+GxP1\_Score = 1.0 − (P\_model / P\_worst)
 Where:
 
 * P\_model = total penalty for the model
@@ -115,7 +106,6 @@ Example:
 
 System Architecture Overview
 The benchmark system is modular and containerized for reproducibility, traceability, and maintainability.
-
 Layers:
 
 1. PostgreSQL Database – Stores sample records, deviations, configs, results, and metadata with referential integrity and version tracking.
@@ -128,7 +118,7 @@ Layers:
 
 Provider Runtime Configs
 
-* Location: `config/providers/{PROVIDER}.yaml`
+* Location: config/providers/{PROVIDER}.yaml
 * Purpose: Store provider-specific operational settings and endpoint mappings.
 * Allowed keys:
 
@@ -164,3 +154,6 @@ For API providers, the environment must contain {PROVIDER\_KEY}\_API\_KEY.
 
 Deprecations
 Python-side constants and static enable/disable sets are being removed. Single source of truth for model availability, identifiers, and scoring rules is config/models.yaml + docs/CONFIG.md.
+
+Formatting Policy
+All formatting must be minimalistic and consistent across updates.
