@@ -12,9 +12,9 @@ Dataset is synthetically generated with 2% deviation injection. Detailed scoring
 
 Configuration details:
 
+* **Model coverage**: See `config/models.yaml` for the current list of enabled and disabled models.
 * **Configuration specification**: All configuration rules, defaults, and agreements are in `docs/CONFIG.md`. This is the authoritative spec for `config/models.yaml`.
 * **Scoring logic**: Complete rules, penalties, and formulas are defined in `docs/CONFIG.md`.
-* **Model coverage**: See `config/models.yaml` for the current list of enabled and disabled models.
 
 Running and testing locally:
 
@@ -23,7 +23,5 @@ docker-compose up -d
 make setup-utils_db
 python main.py
 ```
-
-Unit tests: See `docs/CONFIG.md` for rules tied to `config/models.yaml`.
 
 Licensing: See the LICENSE file in the repository root.
