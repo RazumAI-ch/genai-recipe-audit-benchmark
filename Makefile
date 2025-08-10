@@ -1,106 +1,123 @@
-# File: Makefile
 # ============================================
 # GenAI Recipe Audit Benchmark – Makefile
 # ============================================
 
-# Schema Versioning
 SCHEMA_VERSION = v1.5
 
-# Ensuring .env variables are available in makefile
 include .env
 export
 
-# ============================================
-# Benchmark Execution Targets
-# --------------------------------------------
-# NUM variable captures the 2nd word of the Make invocation, allowing:
-#   make run 1000   → NUM=1000 (number of records to process)
-#   make run none   → NUM=none (process all records)
-#
-# All benchmark execution targets clear the screen first and ensure
-# the DB is running before proceeding. If DB has never been deployed,
-# a clear message will be shown telling the user to run `make deploy-remote`.
-# ============================================
-
-NUM=$(word 2,$(MAKECMDGOALS))
-
-run: _clear ensure-db-running _fix-sequences _refresh-schema-docs _backup-project _run-unit-tests
-	docker-compose run --remove-orphans cli python main.py $(NUM)
+NUM ?= 1
+DC = docker compose
 
 # ============================================
-# SQL Utilities
+# Benchmark Execution
 # ============================================
 
-psql: _clear ensure-db-running _backup-project
-	docker compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
+run: _clear _ensure-db-running _fix-sequences _backup-project
+	@echo "Running benchmark with NUM=$(NUM) records..."
+	$(DC) run --rm cli python main.py $(NUM)
+	@echo "Run finished; see archive/logs for details."
 
-# ============================================
-# PostgreSQL Container Lifecycle
-# ============================================
-
-backup-db: _clear ensure-db-running _backup-project _archive-latest-logs \
-           _announce-recreate-empty-db _recreate_empty_db \
-           _import-from-archive _fix-sequences \
-           _refresh-schema-docs _run-unit-tests _save-to-backup-file \
-           _copy-latest-db-to-archive _show-db-stats
-
-_announce-recreate-empty-db:
-	@echo "Resetting DB and restoring schema... (this can take ~20s)..."
-
-# ensure-db-running:
-#   Checks if the DB service ('db') is running.
-#   If DB service is not deployed at all, instructs the user to run `make deploy-remote`.
-#   If DB service exists but is stopped, starts it and waits until PostgreSQL is ready.
-ensure-db-running:
-	@if ! docker compose ps db --format '{{.Name}}' 2>/dev/null | grep -q .; then \
-		echo "ERROR: No DB service found. Please deploy first:"; \
-		echo "       make deploy-remote"; \
-		exit 1; \
-	fi
-	@if [ "$$(docker compose ps --status=running db --format '{{.Name}}' | wc -l)" -gt 0 ]; then \
-		echo "DB container running (check complete)"; \
-	else \
-		echo "Starting DB container..."; \
-		docker compose up -d db; \
-	fi
-	@$(MAKE) _wait-for-db
-
-_wait-for-db:
-# Waiting for DB to become available
-	@until docker compose exec db pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; do sleep 1; done
-
-_recreate_empty_db:
-	@docker-compose down -v --remove-orphans > /dev/null 2>&1
-	@docker-compose up -d > /dev/null
-	@$(MAKE) _wait-for-db
+test: _ensure-db-running
+	@echo "Running unit tests..."
+	$(MAKE) _run-unit-tests
 
 # ============================================
 # Deployment
 # ============================================
 
-deploy-remote: _clear
-	@echo "Updating code from Git..."
-	git pull origin main
-	@echo "Building containers..."
-	docker compose build
-	@echo "Starting containers..."
-	docker compose up -d
+deploy-remote: _clear _install-docker
+	@echo "Deploying stack (cli + db)..."
+	$(DC) pull || true
+	$(DC) up -d --remove-orphans
 	@$(MAKE) _wait-for-db
-	@echo "Deployment complete. You can now run: make run"
+	@echo "DB is ready. Checking for archived DB to restore..."
+	@if [ -f archive/db-latest.sql.gz ]; then \
+		echo "Restoring DB from archive/db-latest.sql.gz"; \
+		$(MAKE) _import-from-archive; \
+		$(MAKE) _fix-sequences; \
+		$(MAKE) _refresh-schema-docs; \
+		$(MAKE) _show-db-stats; \
+	else \
+		echo "No archive/db-latest.sql.gz found. Using fresh DB."; \
+	fi
+	@echo "Deploy complete. You can now run: make run"
+
+cold-redeploy: _clear _cold-redeploy
+	@echo "Cold redeploy complete. You can now run: make run"
 
 # ============================================
-# Backup / Restore Utilities
+# Internal: DB & Docker Lifecycle
 # ============================================
+
+_ensure-db-running:
+	@if docker ps -a --format '{{.Names}}' | grep -q genai-recipe-audit-benchmark-db-1; then \
+		if [ "$$($(DC) ps --status=running db --format '{{.Name}}' | wc -l)" -gt 0 ]; then \
+			echo "DB container running (check complete)"; \
+		else \
+			echo "Starting existing DB container..."; \
+			$(DC) up -d db; \
+			$(MAKE) _wait-for-db; \
+		fi; \
+	else \
+		echo "No DB container found. Running full deploy-remote to restore DB..."; \
+		$(MAKE) deploy-remote; \
+	fi
+
+_wait-for-db:
+	@echo "Waiting for PostgreSQL in container 'db' to become ready..."
+	@until $(DC) exec db pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; do \
+		echo "  Still waiting for DB..."; \
+		sleep 1; \
+	done
+	@echo "Database is ready!"
+
+_docker-hard-reset:
+	@echo "Hard resetting Docker: removing containers, volumes, and unused data..."
+	@$(DC) down -v || true
+	@docker system prune -af --volumes || true
+
+_cold-redeploy: _docker-hard-reset _install-docker
+	$(DC) pull || true
+	$(DC) up -d --remove-orphans
+	@$(MAKE) _wait-for-db
+
+# ============================================
+# Backup / Restore
+# ============================================
+
+backup-db: _clear _backup-project _archive-latest-logs \
+           _announce-recreate-empty-db _recreate_empty_db \
+           _import-from-archive _fix-sequences \
+           _refresh-schema-docs _run-unit-tests _save-to-backup-file \
+           _copy-latest-db-to-archive _show-db-stats
+
+backup-db-cold: _clear
+	@echo "Running standard backup-db flow..."
+	@$(MAKE) backup-db
+	@echo "Wiping containers/volumes and pruning Docker to simulate fresh install..."
+	@$(MAKE) _docker-hard-reset
+	@echo "Re-deploying stack..."
+	@$(MAKE) deploy-remote
+	@echo "Cold backup/restore validation finished. Run 'make run' when ready."
+
+_announce-recreate-empty-db:
+	@echo "Resetting DB and restoring schema... (this can take ~20s)..."
+
+_recreate_empty_db:
+	@$(DC) down -v > /dev/null 2>&1 || true
+	@$(DC) up -d --remove-orphans > /dev/null
+	@$(MAKE) _wait-for-db
 
 _save-to-backup-file: _wait-for-db
 	@mkdir -p archive/backup/db_backup
 	@TIMESTAMP=$$(date "+%Y-%m-%d_%H-%M") && \
 	FILE="archive/backup/db_backup/$${TIMESTAMP}_benchmarkdb_$(SCHEMA_VERSION).sql.gz" && \
-	docker compose exec db \
+	$(DC) exec db \
 	pg_dump -U $(POSTGRES_USER) -d $(POSTGRES_DB) | gzip > "$$FILE" && \
 	ls -1t archive/backup/db_backup/*.sql.gz | tail -n +21 | xargs rm -f --
 
-# NOTE: keep gzip extension end-to-end to avoid format confusion
 _copy-latest-db-to-archive:
 	@mkdir -p archive
 	@LATEST=$$(ls -t archive/backup/db_backup/*.sql.gz | head -n 1) && \
@@ -110,53 +127,61 @@ _import-from-archive:
 	@FILE="archive/db-latest.sql.gz"; \
 	USER="$(POSTGRES_USER)"; \
 	DB="$(POSTGRES_DB)"; \
-	gunzip -c "$$FILE" | docker compose exec -i db \
-	psql -q -U "$$USER" -d "$$DB" > /dev/null
+	if [ -f "$$FILE" ]; then \
+		echo "Importing $$FILE into $$DB..."; \
+		gunzip -c "$$FILE" | $(DC) exec -i db \
+		psql -q -U "$$USER" -d "$$DB" > /dev/null; \
+	else \
+		echo "No $$FILE found. Skipping import."; \
+	fi
 
-import-db-adhoc: _clear ensure-db-running _backup-project
+import-db-adhoc: _clear _backup-project
 	@echo "Resetting DB before importing ad-hoc backup..."
 	@$(MAKE) _recreate_empty_db
-	@gunzip -c "$(FILE)" | docker compose exec -i db \
+	@gunzip -c "$(FILE)" | $(DC) exec -i db \
 	psql -q -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null
 	@$(MAKE) _fix-sequences
 	@$(MAKE) _refresh-schema-docs
 	@$(MAKE) _show-db-stats
 
+# ============================================
+# Schema Docs & Maintenance
+# ============================================
+
 _refresh-schema-docs:
-	@docker compose exec db \
+	@echo "Refreshing schema_docs..."
+	@$(DC) exec db \
 	pg_dump -U $(POSTGRES_USER) -d $(POSTGRES_DB) --schema-only --clean > db/schema.sql
-
-	@docker compose run --rm -e PGPASSWORD=$(POSTGRES_PASSWORD) cli \
-	psql -U $(POSTGRES_USER) -h db -d $(POSTGRES_DB) --pset pager=off -f db/makefile_db_scripts/refresh_schema_docs.sql > /dev/null
-
+	@$(DC) run --rm -e PGPASSWORD=$(POSTGRES_PASSWORD) cli \
+	psql -U $(POSTGRES_USER) -h db -d $(POSTGRES_DB) --pset pager=off \
+		-f db/makefile_db_scripts/refresh_schema_docs.sql > /dev/null
 	@$(MAKE) _sort-schema-docs
-
-	@COUNT=$$(docker compose exec -T db \
-	psql -t -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "SELECT COUNT(*) FROM schema_docs WHERE description LIKE '[TODO:%]'" | tr -d '[:space:]'); \
+	@COUNT=$$($(DC) exec -T db \
+	psql -t -U $(POSTGRES_USER) -d $(POSTGRES_DB) \
+		-c "SELECT COUNT(*) FROM schema_docs WHERE description LIKE '[TODO:%]'" | tr -d '[:space:]'); \
 	if [ "$$COUNT" -gt 0 ]; then \
-	echo ""; \
-	echo "The following fields are missing descriptions in schema_docs:"; \
-	echo "Please generate and insert descriptions manually via SQL."; \
-	docker compose exec db \
-	psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "\
-	SELECT table_name, column_name FROM schema_docs \
-	WHERE description LIKE '[TODO:%]' ORDER BY table_name, column_name;"; \
+		echo ""; \
+		echo "The following fields are missing descriptions in schema_docs:"; \
+		$(DC) exec db \
+		psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "\
+			SELECT table_name, column_name FROM schema_docs \
+			WHERE description LIKE '[TODO:%]' ORDER BY table_name, column_name;"; \
 	fi
 
 _fix-sequences:
-	docker compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -f /app/db/makefile_db_scripts/fix_all_sequences.sql
+	$(DC) exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -f /app/db/makefile_db_scripts/fix_all_sequences.sql
 
 _sort-schema-docs:
-	docker compose exec db psql -q -U $(POSTGRES_USER) -d $(POSTGRES_DB) -f /app/db/makefile_db_scripts/sort_schema_docs.sql > /dev/null
+	$(DC) exec db psql -q -U $(POSTGRES_USER) -d $(POSTGRES_DB) -f /app/db/makefile_db_scripts/sort_schema_docs.sql > /dev/null
 
 _show-db-stats:
-	docker compose exec db \
+	$(DC) exec db \
 	psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "\
 	SELECT relname AS table, n_live_tup AS estimated_rows \
 	FROM pg_stat_user_tables ORDER BY relname;"
 
 # ============================================
-# Archiving of DB and logs
+# Project Archiving
 # ============================================
 
 _archive-latest-logs:
@@ -166,10 +191,6 @@ _archive-latest-logs:
 	mkdir -p archive/logs/archivable; \
 	echo "Creating logs archive: $$OUT_FILE"; \
 	cd archive/logs && zip -r "$$PWD/../backup/logs_backup/latest_logs.zip" archivable > /dev/null 2>&1
-
-# ============================================
-# Project Code & Config Archive
-# ============================================
 
 _backup-project:
 	@BASE="archive/backup/project_code_and_config_backup"; \
@@ -191,7 +212,7 @@ _backup-project:
 docker-stats:
 	docker stats
 
-train-lora-tinyllama: _clear ensure-db-running
+train-lora-tinyllama: _ensure-db-running
 	docker run -it --rm \
 	  --name lora-trainer \
 	  --memory=117g \
@@ -210,36 +231,11 @@ track-lora-progress:
 	python3 training/utils/track_lora_progress.py
 
 # ============================================
-# Training Data Generation
-# ============================================
-
-generate-training-examples: _clear ensure-db-running
-	docker compose exec cli python training/generate_training_examples.py
-
-check-training-data: check-training-examples check-training-example-deviations check-training-llm-sources
-
-check-training-examples:
-	docker compose exec db \
-	psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "SELECT id, input_format, input_content FROM training_examples ORDER BY id DESC LIMIT 10;"
-
-check-training-example-deviations:
-	docker compose exec db \
-	psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "\
-	SELECT training_example_id, deviation_type_id, source_field, explanation \
-	FROM training_example_deviations \
-	ORDER BY training_example_id DESC LIMIT 20;"
-
-check-training-llm-sources:
-	docker compose exec db \
-	psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "\
-	SELECT id, source_llm FROM training_examples ORDER BY id DESC LIMIT 10;"
-
-# ============================================
 # Unit Testing
 # ============================================
 
 _run-unit-tests:
-	docker-compose run --rm --remove-orphans cli python -m unit_tests.runner_unit_tests
+	$(DC) run --rm cli python -m unit_tests.runner_unit_tests
 
 # ============================================
 # Utils
@@ -248,18 +244,16 @@ _run-unit-tests:
 _clear:
 	@printf "\033c"
 
+_install-docker:
+	chmod +x scripts/install_docker.sh
+	@scripts/install_docker.sh
+
 %:
 	@:
 
-# ============================================
-# PHONY Targets
-# ============================================
-
-.PHONY: run psql backup-db docker-stats train-lora-tinyllama tail-lora-log \
-        track-lora-progress generate-training-examples check-training-data \
-        check-training-examples check-training-example-deviations \
-        check-training-llm-sources import-db-adhoc _clear \
-        _wait-for-db _recreate_empty_db _save-to-backup-file _import-from-archive \
+.PHONY: run test deploy-remote cold-redeploy backup-db backup-db-cold \
+        _ensure-db-running _wait-for-db _docker-hard-reset _cold-redeploy \
+        _import-from-archive _save-to-backup-file _copy-latest-db-to-archive \
         _refresh-schema-docs _sort-schema-docs _fix-sequences _show-db-stats \
-        _archive-latest-logs _run-unit-tests _backup-project ensure-db-running \
-        _announce-recreate-empty-db deploy-remote
+        _archive-latest-logs _run-unit-tests _backup-project _clear _install-docker \
+        import-db-adhoc docker-stats train-lora-tinyllama tail-lora-log track-lora-progress
