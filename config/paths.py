@@ -18,6 +18,8 @@ PATH_EVALUATED_LLM_CONFIGS = f"{PATH_CONFIG_BASE}/evaluated_llm_configs"
 # --- Folder containing all final evaluated LLM implementation classes
 PATH_BENCHMARK_EVALUATED_LLM_IMPLEMENTATIONS = "benchmark_llms/evaluated_llms/implementations"
 
+PATH_CONFIG_MODELS_YAML=f"{PATH_CONFIG_BASE}/models.yaml"
+
 
 # ============================
 # Output: Logging and Artifacts
