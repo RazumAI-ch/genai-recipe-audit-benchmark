@@ -11,40 +11,82 @@ include .env
 export
 
 # ============================================
-# Benchmark Execution
+# Benchmark Execution Targets
+# --------------------------------------------
+# NUM variable captures the 2nd word of the Make invocation, allowing:
+#   make run 1000   → NUM=1000 (number of records to process)
+#   make run none   → NUM=none (process all records)
+#
+# All benchmark execution targets clear the screen first and ensure
+# the DB is running before proceeding. If DB has never been deployed,
+# a clear message will be shown telling the user to run `make deploy-remote`.
 # ============================================
 
 NUM=$(word 2,$(MAKECMDGOALS))
 
-run: _clear _backup-project _run-unit-tests
+run: _clear ensure-db-running _fix-sequences _refresh-schema-docs _backup-project _run-unit-tests
 	docker-compose run --remove-orphans cli python main.py $(NUM)
 
 # ============================================
 # SQL Utilities
 # ============================================
 
-psql: _backup-project
+psql: _clear ensure-db-running _backup-project
 	docker compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 
 # ============================================
 # PostgreSQL Container Lifecycle
 # ============================================
 
-backup-db: _clear _backup-project _archive-latest-logs _run-unit-tests _refresh-schema-docs _save-to-backup-file _copy-latest-db-to-archive
-	@echo "Resetting DB and restoring schema..."
-	@$(MAKE) _recreate_empty_db
-	@$(MAKE) _import-from-archive
-	@$(MAKE) _fix-sequences
-	@$(MAKE) _show-db-stats
+backup-db: _clear ensure-db-running _backup-project _archive-latest-logs \
+           _announce-recreate-empty-db _recreate_empty_db \
+           _import-from-archive _fix-sequences \
+           _refresh-schema-docs _run-unit-tests _save-to-backup-file \
+           _copy-latest-db-to-archive _show-db-stats
+
+_announce-recreate-empty-db:
+	@echo "Resetting DB and restoring schema... (this can take ~20s)..."
+
+# ensure-db-running:
+#   Checks if the DB service ('db') is running.
+#   If DB service is not deployed at all, instructs the user to run `make deploy-remote`.
+#   If DB service exists but is stopped, starts it and waits until PostgreSQL is ready.
+ensure-db-running:
+	@if ! docker compose ps db --format '{{.Name}}' 2>/dev/null | grep -q .; then \
+		echo "ERROR: No DB service found. Please deploy first:"; \
+		echo "       make deploy-remote"; \
+		exit 1; \
+	fi
+	@if [ "$$(docker compose ps --status=running db --format '{{.Name}}' | wc -l)" -gt 0 ]; then \
+		echo "DB container running (check complete)"; \
+	else \
+		echo "Starting DB container..."; \
+		docker compose up -d db; \
+	fi
+	@$(MAKE) _wait-for-db
 
 _wait-for-db:
 # Waiting for DB to become available
-	@until docker exec genai-recipe-audit-benchmark-db-1 pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB); do sleep 1; done
+	@until docker compose exec db pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null 2>&1; do sleep 1; done
 
 _recreate_empty_db:
 	@docker-compose down -v --remove-orphans > /dev/null 2>&1
 	@docker-compose up -d > /dev/null
 	@$(MAKE) _wait-for-db
+
+# ============================================
+# Deployment
+# ============================================
+
+deploy-remote: _clear
+	@echo "Updating code from Git..."
+	git pull origin main
+	@echo "Building containers..."
+	docker compose build
+	@echo "Starting containers..."
+	docker compose up -d
+	@$(MAKE) _wait-for-db
+	@echo "Deployment complete. You can now run: make run"
 
 # ============================================
 # Backup / Restore Utilities
@@ -54,7 +96,7 @@ _save-to-backup-file: _wait-for-db
 	@mkdir -p archive/backup/db_backup
 	@TIMESTAMP=$$(date "+%Y-%m-%d_%H-%M") && \
 	FILE="archive/backup/db_backup/$${TIMESTAMP}_benchmarkdb_$(SCHEMA_VERSION).sql.gz" && \
-	docker exec genai-recipe-audit-benchmark-db-1 \
+	docker compose exec db \
 	pg_dump -U $(POSTGRES_USER) -d $(POSTGRES_DB) | gzip > "$$FILE" && \
 	ls -1t archive/backup/db_backup/*.sql.gz | tail -n +21 | xargs rm -f --
 
@@ -68,22 +110,20 @@ _import-from-archive:
 	@FILE="archive/db-latest.sql.gz"; \
 	USER="$(POSTGRES_USER)"; \
 	DB="$(POSTGRES_DB)"; \
-	gunzip -c "$$FILE" | docker exec -i genai-recipe-audit-benchmark-db-1 \
+	gunzip -c "$$FILE" | docker compose exec -i db \
 	psql -q -U "$$USER" -d "$$DB" > /dev/null
 
-# Import any .gz backup by specifying FILE=...
-# Example: make import-db-adhoc FILE=archive/backup/db_backup/2025-07-26_19-46.sql.gz
-import-db-adhoc: _clear _backup-project
+import-db-adhoc: _clear ensure-db-running _backup-project
 	@echo "Resetting DB before importing ad-hoc backup..."
 	@$(MAKE) _recreate_empty_db
-	@gunzip -c "$(FILE)" | docker exec -i genai-recipe-audit-benchmark-db-1 \
+	@gunzip -c "$(FILE)" | docker compose exec -i db \
 	psql -q -U $(POSTGRES_USER) -d $(POSTGRES_DB) > /dev/null
 	@$(MAKE) _fix-sequences
 	@$(MAKE) _refresh-schema-docs
 	@$(MAKE) _show-db-stats
 
 _refresh-schema-docs:
-	@docker exec genai-recipe-audit-benchmark-db-1 \
+	@docker compose exec db \
 	pg_dump -U $(POSTGRES_USER) -d $(POSTGRES_DB) --schema-only --clean > db/schema.sql
 
 	@docker compose run --rm -e PGPASSWORD=$(POSTGRES_PASSWORD) cli \
@@ -103,7 +143,6 @@ _refresh-schema-docs:
 	WHERE description LIKE '[TODO:%]' ORDER BY table_name, column_name;"; \
 	fi
 
-# Fix all PostgreSQL sequences to match current data state
 _fix-sequences:
 	docker compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -f /app/db/makefile_db_scripts/fix_all_sequences.sql
 
@@ -111,7 +150,7 @@ _sort-schema-docs:
 	docker compose exec db psql -q -U $(POSTGRES_USER) -d $(POSTGRES_DB) -f /app/db/makefile_db_scripts/sort_schema_docs.sql > /dev/null
 
 _show-db-stats:
-	docker exec -it genai-recipe-audit-benchmark-db-1 \
+	docker compose exec db \
 	psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "\
 	SELECT relname AS table, n_live_tup AS estimated_rows \
 	FROM pg_stat_user_tables ORDER BY relname;"
@@ -152,7 +191,7 @@ _backup-project:
 docker-stats:
 	docker stats
 
-train-lora-tinyllama: _wait-for-db
+train-lora-tinyllama: _clear ensure-db-running
 	docker run -it --rm \
 	  --name lora-trainer \
 	  --memory=117g \
@@ -174,7 +213,7 @@ track-lora-progress:
 # Training Data Generation
 # ============================================
 
-generate-training-examples:
+generate-training-examples: _clear ensure-db-running
 	docker compose exec cli python training/generate_training_examples.py
 
 check-training-data: check-training-examples check-training-example-deviations check-training-llm-sources
@@ -222,4 +261,5 @@ _clear:
         check-training-llm-sources import-db-adhoc _clear \
         _wait-for-db _recreate_empty_db _save-to-backup-file _import-from-archive \
         _refresh-schema-docs _sort-schema-docs _fix-sequences _show-db-stats \
-        _archive-latest-logs _run-unit-tests _backup-project
+        _archive-latest-logs _run-unit-tests _backup-project ensure-db-running \
+        _announce-recreate-empty-db deploy-remote
