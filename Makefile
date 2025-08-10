@@ -27,7 +27,7 @@ test: _ensure-db-running
 # Deployment
 # ============================================
 
-deploy-remote: _clear _install-docker
+deploy-remote: _install-docker
 	@echo "Deploying stack (cli + db)..."
 	$(DC) pull || true
 	$(DC) up -d --remove-orphans
