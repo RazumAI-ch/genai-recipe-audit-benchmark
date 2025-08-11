@@ -4,7 +4,7 @@ import os
 from abc import ABC
 import json
 from benchmark_llms.evaluated_llms.abstract_evaluated_llm_base import AbstractEvaluatedLLMBase
-import benchmark_llms.utils.utils as utils
+import benchmark_llms.evaluated_llms.utils.utils as utils
 from config.keys_evaluated_llms import API_KEY_ENV
 
 

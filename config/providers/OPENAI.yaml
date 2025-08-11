@@ -1,0 +1,7 @@
+# File: config/providers/OPENAI.yaml
+# Provider configuration for OpenAI API access.
+# No `model_overrides` section is needed because the `model` values in models.yaml
+# already match exactly the API's expected model names (e.g., "gpt-4o", "gpt-3.5-turbo").
+
+api_key_env: OPENAI_API_KEY
+base_url: https://api.openai.com/v1

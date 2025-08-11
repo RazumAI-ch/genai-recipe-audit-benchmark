@@ -21,6 +21,10 @@ PATH_BENCHMARK_EVALUATED_LLM_IMPLEMENTATIONS = "benchmark_llms/evaluated_llms/im
 PATH_CONFIG_MODELS_YAML=f"{PATH_CONFIG_BASE}/models.yaml"
 
 
+# --- Folder containing per-provider configs (must match provider name in models.yaml)
+PATH_PROVIDERS_CONFIGS = f"{PATH_CONFIG_BASE}/providers"
+
+
 # ============================
 # Output: Logging and Artifacts
 # ============================

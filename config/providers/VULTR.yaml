@@ -1,0 +1,11 @@
+api_key_env: VULTR_API_KEY
+base_url: https://api.vultr.com/v2
+http:
+  timeout_seconds: 60
+  max_retries: 3
+  rate_limit_sleep: 2.0
+model_overrides:
+  Mistral-7B-Instruct-v0.3:
+    endpoint_model_id: mistral-7b-instruct-v0.3
+  TinyLlama-LoRA:
+    endpoint_model_id: tinylama-lora-v1

@@ -10,7 +10,7 @@ import yaml
 import json
 import datetime
 from loggers.implementations.benchmark_log_manager import BenchmarkLogFileManager
-from benchmark_llms.utils.prompt_helpers import get_deviation_section_from_db
+from benchmark_llms.evaluated_llms.utils.prompt_helpers import get_deviation_section_from_db
 
 class AbstractEvaluatedLLMBase(InterfaceEvaluatedLLM, ABC):
     """

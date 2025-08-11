@@ -1,0 +1,8 @@
+# File: config/providers/GEMINI_STUDIO.yaml
+# Provider runtime configuration for GEMINI_STUDIO
+# Matches provider key in config/models.yaml
+
+api_key_env: GEMINI_STUDIO_API_KEY
+base_url: https://generativelanguage.googleapis.com/v1beta
+# No http.* overrides — uses defaults from config/models.yaml
+# No model_overrides — canonical model names in models.yaml match API endpoints.
