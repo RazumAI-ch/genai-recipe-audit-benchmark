@@ -4,7 +4,7 @@ from abc import ABC
 import abc
 from typing import Dict, Any
 from benchmark_llms.evaluated_llms.interface_evaluated_llm import InterfaceEvaluatedLLM
-import config.keys_evaluated_llms as config_keys_evaluated_llms
+import config.keys.keys_llms as config_keys_llms
 import config.paths as config_paths
 import yaml
 import json
@@ -31,8 +31,8 @@ class AbstractEvaluatedLLMBase(InterfaceEvaluatedLLM, ABC):
         self.user_prompt_prefix = ""
         self.model = None
         self.batch_size = None
-        self.temperature = config_keys_evaluated_llms.LLM_TEMPERATURE
-        self.max_tokens = self.model_config.get("max_tokens", config_keys_evaluated_llms.LLM_MAX_TOKENS_DEFAULT)
+        self.temperature = config_keys_llms.LLM_TEMPERATURE
+        self.max_tokens = self.model_config.get("max_tokens", config_keys_llms.LLM_MAX_TOKENS_DEFAULT)
         self.logger = BenchmarkLogFileManager(self.get_model_key())
 
     def _load_config(self, path: str) -> dict:
@@ -48,8 +48,8 @@ class AbstractEvaluatedLLMBase(InterfaceEvaluatedLLM, ABC):
         Also extracts model and batch size from the resolved config.
         """
         self.prompt_config = self._load_prompt_config()
-        self.system_prompt = self.prompt_config.get(config_keys_evaluated_llms.SYSTEM_PROMPT, "")
-        self.user_prompt_prefix = self.prompt_config.get(config_keys_evaluated_llms.USER_PROMPT, "")
+        self.system_prompt = self.prompt_config.get(config_keys_llms.SYSTEM_PROMPT, "")
+        self.user_prompt_prefix = self.prompt_config.get(config_keys_llms.USER_PROMPT, "")
 
         deviation_section = get_deviation_section_from_db()
         self.user_prompt_prefix = self.user_prompt_prefix.replace("{{DEVIATION_SECTION}}", deviation_section)
@@ -63,8 +63,8 @@ class AbstractEvaluatedLLMBase(InterfaceEvaluatedLLM, ABC):
         if overrides:
             self.model_config.update(overrides)
 
-        self.model = self.model_config[config_keys_evaluated_llms.MODEL]
-        self.batch_size = self.model_config.get(config_keys_evaluated_llms.BATCH_SIZE, config_keys_evaluated_llms.LLM_DEFAULT_BATCH_SIZE)
+        self.model = self.model_config[config_keys_llms.MODEL]
+        self.batch_size = self.model_config.get(config_keys_llms.BATCH_SIZE, config_keys_llms.LLM_DEFAULT_BATCH_SIZE)
 
     def log_input_records(self, records: list[dict]) -> None:
         self.logger.write_log("input_records", {"records": records})
