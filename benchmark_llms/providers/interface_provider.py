@@ -9,25 +9,18 @@ class InterfaceProvider(ABC):
     """
     Minimal, stable contract for all providers.
 
-    A provider takes a *merged* model_config (from models.yaml + defaults + provider yaml),
-    and exposes a single high-level `infer(...)` that returns the *raw* provider response
-    (string) which higher layers will parse/normalize.
+    This defines HOW higher layers talk to providers, without
+    constraining internal implementation details.
+
+    All implementing classes must:
+      - Provide their provider key via get_provider_key()
+      - Execute inference via infer()
     """
 
-    def __init__(self, model_config: Dict[str, Any]):
-        self.model_config: Dict[str, Any] = model_config
-
-    @property
     @abstractmethod
-    def provider_key(self) -> str:
-        """Return the canonical provider key (e.g., 'OPENAI', 'GEMINI_STUDIO')."""
-        ...
-
-    @abstractmethod
-    def prepare(self) -> None:
+    def get_provider_key(self) -> str:
         """
-        Perform any one-time setup (read API key, init clients, validate config).
-        Should raise if required config/env is missing.
+        Return the canonical provider key (e.g., 'OPENAI', 'GEMINI_STUDIO').
         """
         ...
 
@@ -44,7 +37,16 @@ class InterfaceProvider(ABC):
         batch_size: Optional[int],
     ) -> str:
         """
-        Execute inference for the batch of records and return the RAW textual response
-        from the provider (the evaluated-LLM layer will parse/validate JSON).
+        Execute inference for the given batch of records and return the
+        RAW textual provider response.
+
+        :param records: List of structured recipe records to audit.
+        :param system_prompt: The system-level instruction text.
+        :param user_prompt_template: The user prompt template text.
+        :param model: Canonical model name from models.yaml.
+        :param temperature: Optional temperature override.
+        :param max_tokens: Optional max_tokens override.
+        :param batch_size: Optional batch size override.
+        :return: Raw provider output as a string.
         """
         ...

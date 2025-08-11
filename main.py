@@ -43,7 +43,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Default behavior: run legacy only (exactly like before).
-    run_legacy(max_records)
+    # run_legacy(max_records)
 
     # ----------------------------------------------------------------------
     # To test the models.yaml path, just uncomment the two lines below.

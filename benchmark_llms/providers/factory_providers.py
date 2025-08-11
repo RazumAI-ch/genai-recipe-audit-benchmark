@@ -1,5 +1,3 @@
-# File: benchmark_llms/providers/factory_providers.py
-
 from __future__ import annotations
 
 from typing import Dict, Any, Type
@@ -16,39 +14,29 @@ class FactoryProviders:
     """
 
     def __init__(self):
+        # discovery returns: { "OPENAI": <OpenAIProvider>, "GEMINI_STUDIO": <...>, ... }
         self._registry: Dict[str, Type[AbstractProvider]] = discover_providers()
-
-    # --- New: convenience constructor to match call sites ---
-    @classmethod
-    def from_configs(cls) -> "FactoryProviders":
-        """
-        In future this can read config/providers/providers.yaml (defaults),
-        but for now discovery alone is enough.
-        """
-        return cls()
 
     def get_registry(self) -> Dict[str, Type[AbstractProvider]]:
         return dict(self._registry)
 
-    # --- New: 'build' to match call sites; keep old 'make_provider' as alias ---
     def build(
         self,
         *,
-        provider_name: str,
-        model_name: str,
-        model_config: Dict[str, Any],
+        provider_name: str,           # e.g. "OPENAI"
+        model_name: str,              # e.g. "gpt-4o"
+        model_config: Dict[str, Any], # merged config for this model
     ) -> AbstractProvider:
         cls = self._registry.get(provider_name)
         if not cls:
             raise ValueError(
                 f"No provider implementation registered for '{provider_name}'. "
-                f"Known: {sorted(self._registry.keys())}"
+                f"Known providers: {sorted(self._registry.keys())}"
             )
-        if not issubclass(cls, AbstractProvider):
-            raise TypeError(
-                f"Registered class for '{provider_name}' is not an AbstractProvider: {cls}"
-            )
-        return cls(provider_name=provider_name, model_name=model_name, model_config=model_config)
 
-    # Back-compat alias (older call sites)
-    make_provider = build
+        # Do NOT pass provider_key here. Final class must provide it to super().__init__.
+        instance = cls(
+            model_name=model_name,
+            model_config=model_config,
+        )
+        return instance

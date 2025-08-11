@@ -56,7 +56,8 @@ class EvaluatedLLMFromModelsYAML(AbstractEvaluatedLLMBase):
         """
         super().prepare(overrides=overrides)
 
-        factory = FactoryProviders.from_configs()
+        # Build provider after base has prepared prompts & config
+        factory = FactoryProviders()
         self._provider = factory.build(
             provider_name=self.model_config[YAMLKeys.PROVIDER],
             model_name=self.model,
@@ -71,10 +72,11 @@ class EvaluatedLLMFromModelsYAML(AbstractEvaluatedLLMBase):
         if self._provider is None:
             raise RuntimeError("Provider not initialized. Call prepare() first.")
 
+        # NOTE: base exposes `system_prompt` and `user_prompt_prefix`
         raw = self._provider.infer(
             records=records,
-            system_prompt=self.system_prompt,      # from base.prepare()
-            user_prompt_template=self.user_prompt, # from base.prepare()
+            system_prompt=self.system_prompt,
+            user_prompt_template=self.user_prompt_prefix,
             model=self.model,
             temperature=self.temperature,
             max_tokens=self.max_tokens,
