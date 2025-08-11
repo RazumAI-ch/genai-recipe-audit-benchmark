@@ -1,0 +1,7 @@
+# Central provider-level defaults (apply to ALL providers unless overridden
+# by provider implementation YAMLs). Keep this file minimal—defaults only.
+
+provider_defaults:
+  http.timeout_seconds: 60
+  http.max_retries: 3
+  http.rate_limit_sleep: 2

@@ -14,7 +14,7 @@
 # This ensures loose coupling between model identity (Mistral) and API provider.
 # ==============================================================================
 
-from benchmark_llms.evaluated_llms.abstract_implementations.abstract_evaluated_llm_vultr import AbstractEvaluatedLLMVultr
+from benchmark_llms.deprecated.evaluated_llms.abstract_implementations.abstract_evaluated_llm_vultr import AbstractEvaluatedLLMVultr
 
 class AbstractEvaluatedLLMMistral(AbstractEvaluatedLLMVultr):
     pass

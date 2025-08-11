@@ -1,3 +1,5 @@
+# File: config/paths.py
+
 # ============================
 # Config: YAML Input Files
 # ============================
@@ -8,21 +10,32 @@ PATH_CONFIG_BASE = "config"
 PATH_CONFIG_PROMPT = f"{PATH_CONFIG_BASE}/prompts.yaml"
 
 # --- Folder where per-LLM configs are found (must match ModelKey)
-PATH_EVALUATED_LLM_CONFIGS = f"{PATH_CONFIG_BASE}/evaluated_llm_configs"
+# NOTE: Legacy per-model YAMLs. kept during migration; remove after MC1.1 cutover.
+PATH_EVALUATED_LLM_CONFIGS = "benchmark_llms/deprecated/evaluated_llms/evaluated_llm_configs"  # DEPRECATE_AFTER_MC1_1
+
+# --- models.yaml (evaluated LLMs catalog + global model defaults)
+PATH_CONFIG_MODELS_YAML = f"{PATH_CONFIG_BASE}/models.yaml"
+
+# --- Providers config (new layout)
+#     - providers.yaml holds provider_defaults (global + per-provider)
+#     - implementations/{PROVIDER}.yaml holds each provider’s runtime config
+PATH_CONFIG_PROVIDERS_BASE = f"{PATH_CONFIG_BASE}/providers"
+PATH_CONFIG_PROVIDERS_YAML = f"{PATH_CONFIG_PROVIDERS_BASE}/providers.yaml"
+PATH_CONFIG_PROVIDERS_IMPLEMENTATIONS = f"{PATH_CONFIG_PROVIDERS_BASE}/implementations"
 
 
 # ============================
 # Implementation: Python Model Classes
 # ============================
 
-# --- Folder containing all final evaluated LLM implementation classes
-PATH_BENCHMARK_EVALUATED_LLM_IMPLEMENTATIONS = "benchmark_llms/evaluated_llms/implementations"
+# --- Folder containing all final evaluated LLM implementation classes (legacy MC0)
+# NOTE: Legacy folder-scan implementations. Kept only to validate parity during MC1 bring‑up.
+#       Marked for removal once models.yaml + provider factory fully replace MC0 (target: MC1.1).
+PATH_BENCHMARK_EVALUATED_LLM_IMPLEMENTATIONS = (
+    "benchmark_llms/deprecated/evaluated_llms/implementations"  # DEPRECATE_AFTER_MC1_1
+)
 
-PATH_CONFIG_MODELS_YAML=f"{PATH_CONFIG_BASE}/models.yaml"
-
-
-# --- Folder containing per-provider configs (must match provider name in models.yaml)
-PATH_PROVIDERS_CONFIGS = f"{PATH_CONFIG_BASE}/providers"
+PATH_PROVIDERS_IMPLEMENTATIONS_CODE = "benchmark_llms/providers/implementations"
 
 
 # ============================

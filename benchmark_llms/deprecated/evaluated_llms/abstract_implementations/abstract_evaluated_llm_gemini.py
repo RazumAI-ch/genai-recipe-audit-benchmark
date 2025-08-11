@@ -1,9 +1,8 @@
 # abstract_evaluated_llm_gemini.py
-import os
-from abc import ABC, abstractmethod
+from abc import ABC
 from google import generativeai as genai
 
-from benchmark_llms.evaluated_llms.abstract_evaluated_llm_api_access import AbstractEvaluatedLLM_APIAccess
+from benchmark_llms.deprecated.evaluated_llms.abstract_evaluated_llm_api_access import AbstractEvaluatedLLM_APIAccess
 
 class AbstractEvaluatedLLM_Gemini(AbstractEvaluatedLLM_APIAccess, ABC):
     """

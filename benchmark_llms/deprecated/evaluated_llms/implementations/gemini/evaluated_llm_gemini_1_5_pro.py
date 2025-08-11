@@ -1,8 +1,7 @@
 # File: benchmark_llms/evaluated_llms/implementations/evaluated_llm_gemini_1_5_pro.py
 
-from benchmark_llms.evaluated_llms.abstract_implementations.abstract_evaluated_llm_gemini import AbstractEvaluatedLLM_Gemini
-import config.keys_evaluated_llms as config_keys
-import config.paths as config_paths
+from benchmark_llms.deprecated.evaluated_llms.abstract_implementations.abstract_evaluated_llm_gemini import AbstractEvaluatedLLM_Gemini
+import config.keys.keys_llms as config_keys
 
 
 class EvaluatedLLM_Gemini1_5Pro(AbstractEvaluatedLLM_Gemini):

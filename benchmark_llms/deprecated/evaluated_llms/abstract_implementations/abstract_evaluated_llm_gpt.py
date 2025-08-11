@@ -3,8 +3,7 @@
 import openai
 from abc import ABC
 
-from benchmark_llms.evaluated_llms.abstract_evaluated_llm_api_access import AbstractEvaluatedLLM_APIAccess
-from config import paths as config_paths
+from benchmark_llms.deprecated.evaluated_llms.abstract_evaluated_llm_api_access import AbstractEvaluatedLLM_APIAccess
 
 
 class AbstractEvaluatedLLM_GPT(AbstractEvaluatedLLM_APIAccess, ABC):

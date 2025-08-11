@@ -3,10 +3,10 @@
 import sys
 import argparse
 
-from benchmark_llms.utils.runner_benchmark_evaluated_llms import (
+from benchmark_llms.deprecated.runner_benchmark_evaluated_llms import (
     RunnerBenchmarkEvaluatedLLMs,
 )
-from benchmark_llms.utils.runner_benchmark_evaluated_llms_from_models_yaml import (
+from benchmark_llms.evaluated_llms.runner_benchmark_evaluated_llms_from_models_yaml import (
     RunnerBenchmarkEvaluatedLLMsFromModelsYAML,
 )
 

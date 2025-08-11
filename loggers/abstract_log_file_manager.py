@@ -5,8 +5,7 @@ import datetime
 import zoneinfo
 import typing
 import abc
-import config.paths as config_paths
-import config.keys_evaluated_llms as config_keys_evaluated_llms
+import config.keys.keys_llms as config_keys_evaluated_llms
 
 
 class AbstractLogFileManager(abc.ABC):

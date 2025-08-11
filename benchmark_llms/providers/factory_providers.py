@@ -1,49 +1,54 @@
-# File: benchmark_llms/utils/factory_providers.py
+# File: benchmark_llms/providers/factory_providers.py
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Type
 
-import yaml
-import config.paths as config_paths
+from benchmark_llms.providers.abstract_provider import AbstractProvider
+from benchmark_llms.providers.utils.providers_autodiscovery import discover_providers
 
 
 class FactoryProviders:
     """
-    Loads and resolves provider configurations from config/providers/*.yaml.
-    Merge order:
-      1. provider_defaults.all from models.yaml
-      2. provider_defaults[PROVIDER] from models.yaml
-      3. config/providers/{PROVIDER}.yaml
+    Provider factory.
+    - Auto-discovers provider classes (no manual registry).
+    - Instantiates the concrete provider for the model's provider key.
     """
 
-    def __init__(self, provider_defaults_all: Dict[str, Any] = None, provider_defaults_specific: Dict[str, Any] = None):
-        """
-        :param provider_defaults_all: Defaults for all providers (from models.yaml -> provider_defaults.all)
-        :param provider_defaults_specific: Dict of provider-specific defaults from models.yaml -> provider_defaults
-        """
-        self.provider_defaults_all = provider_defaults_all or {}
-        self.provider_defaults_specific = provider_defaults_specific or {}
+    def __init__(self):
+        self._registry: Dict[str, Type[AbstractProvider]] = discover_providers()
 
-    def load_provider_config(self, provider_name: str) -> Dict[str, Any]:
+    # --- New: convenience constructor to match call sites ---
+    @classmethod
+    def from_configs(cls) -> "FactoryProviders":
         """
-        Load provider configuration YAML for the given provider name.
-        :param provider_name: The CAPSLOCK provider key from models.yaml
-        :return: Merged configuration dictionary
+        In future this can read config/providers/providers.yaml (defaults),
+        but for now discovery alone is enough.
         """
-        # Path to provider YAML file
-        provider_yaml_path = Path(config_paths.PATH_CONFIG_BASE) / "providers" / f"{provider_name}.yaml"
-        if not provider_yaml_path.is_file():
-            raise FileNotFoundError(f"Provider config not found: {provider_yaml_path}")
+        return cls()
 
-        with open(provider_yaml_path, "r", encoding="utf-8") as f:
-            provider_yaml_data = yaml.safe_load(f) or {}
+    def get_registry(self) -> Dict[str, Type[AbstractProvider]]:
+        return dict(self._registry)
 
-        # Merge: all → provider-specific defaults (from models.yaml) → provider YAML
-        merged_cfg = {}
-        merged_cfg.update(self.provider_defaults_all)
-        merged_cfg.update(self.provider_defaults_specific.get(provider_name, {}) or {})
-        merged_cfg.update(provider_yaml_data)
+    # --- New: 'build' to match call sites; keep old 'make_provider' as alias ---
+    def build(
+        self,
+        *,
+        provider_name: str,
+        model_name: str,
+        model_config: Dict[str, Any],
+    ) -> AbstractProvider:
+        cls = self._registry.get(provider_name)
+        if not cls:
+            raise ValueError(
+                f"No provider implementation registered for '{provider_name}'. "
+                f"Known: {sorted(self._registry.keys())}"
+            )
+        if not issubclass(cls, AbstractProvider):
+            raise TypeError(
+                f"Registered class for '{provider_name}' is not an AbstractProvider: {cls}"
+            )
+        return cls(provider_name=provider_name, model_name=model_name, model_config=model_config)
 
-        return merged_cfg
+    # Back-compat alias (older call sites)
+    make_provider = build

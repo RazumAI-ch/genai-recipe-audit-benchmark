@@ -1,4 +1,4 @@
-# File: config/keys_evaluated_llms.py
+# File: config/keys_llms.py
 # ============================
 # Canonical keys, provider IDs, and minimal helpers (lean by design)
 # ============================
@@ -18,22 +18,6 @@ class LLMModels:
 
 
 # ---- Provider identifiers (must match models.yaml provider keys exactly)
-class LLMProviders:
-    OPENAI = "OPENAI"
-    GEMINI_STUDIO = "GEMINI_STUDIO"
-    VERTEX_AI = "VERTEX_AI"
-    VULTR = "VULTR"
-
-    @classmethod
-    def all(cls):
-        return {value for key, value in cls.__dict__.items()}
-
-    @classmethod
-    def to_api_key_env(cls, provider: str) -> str:
-        """Construct environment variable name for an API key from a provider key."""
-        if provider not in cls.all():
-            raise ValueError(f"Unknown provider '{provider}'. Expected one of: {sorted(cls.all())}")
-        return f"{provider}_API_KEY"
 
 
 # ---- YAML field names (single source of truth used across loaders/factories)
@@ -53,8 +37,6 @@ class PromptKeys:
 
 
 # ---- Logging & Retention (used by current implementation)
-class LogKeys:
-    LOG_HISTORY_SIZE = 0
 
 
 # ---------------------------------------------------------------------------
@@ -100,9 +82,9 @@ MISTRAL_7B_INSTRUCT = "mistral-7b-instruct"  # ACTION:REMOVE_AFTER; REF=config/m
 
 # ---- Models Enabled/Disabled for Benchmark (legacy — use YAML `enabled:` instead)
 DISABLED_BENCHMARK_MODELS = {          # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0; NOTE: Use models.*.enabled in YAML
+    GEMINI_2_5_PRO,      # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
     GPT_35_TURBO,        # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
     GEMINI_1_5_PRO,     # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
     GEMINI_1_5_FLASH,  # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
-    GEMINI_2_5_PRO,      # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
-    MISTRAL_7B_INSTRUCT,  # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
+    # MISTRAL_7B_INSTRUCT,  # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
 }

@@ -5,7 +5,7 @@ import importlib.util
 import inspect
 from typing import Type, Dict, List
 
-import config.keys_unit_tests as config_keys_unit_tests
+import config.keys.keys_unit_tests as config_keys_unit_tests
 from unit_tests.abstract_unit_test import AbstractUnitTest
 
 ENABLED_UNIT_TESTS = config_keys_unit_tests.ENABLED_UNIT_TESTS

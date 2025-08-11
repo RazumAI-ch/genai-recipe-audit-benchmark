@@ -1,7 +1,7 @@
 # File: unit_tests/unit_tests_db/unit_test_schema_docs_sync.py
 
 from unit_tests.unit_tests_db.abstract_unit_test_db import AbstractUnitTestDB
-import config.keys_unit_tests as keys
+import config.keys.keys_unit_tests as keys
 import unit_tests.utils_db.schema_docs as schema_docs
 
 class UnitTestSchemaDocsSync(AbstractUnitTestDB):

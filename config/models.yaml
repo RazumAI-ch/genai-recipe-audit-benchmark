@@ -1,40 +1,36 @@
 # File: config/models.yaml
 # See docs/CONFIG.md for the agreement/spec; this version must match CONFIG.md.
-version: "0.2.1"  # UNIQUE_ID: config/models.yaml:version
+version: "0.2.2"  # UNIQUE_ID: config/models.yaml:version
 
-# Defaults applied to every model unless overridden below.
+# -------------------------------------------------------------------
+# Defaults applied to every model unless overridden below:
+#   - global_model_defaults are for model-level fields (temperature, max_tokens, enabled, etc.)
+#   - provider-level defaults have been moved to config/providers/providers.yaml
+#     (batch_size, http.* values, etc.)
+# -------------------------------------------------------------------
 global_model_defaults:
   temperature: 0.0
   max_tokens: 2048
-  enabled: true
+  enabled: true  # models run by default unless explicitly set false
 
-# Provider-level defaults.
-# `_ALL_` applies to every provider; individual providers can override.
-provider_defaults:
-  _ALL_:
-    http.timeout_seconds: 60
-    http.max_retries: 3
-    http.rate_limit_sleep: 2
-  OPENAI:
-    batch_size: 20
-  GEMINI_STUDIO:
-    batch_size: 10
-  VERTEX_AI:
-    batch_size: 10
-  VULTR:
-    batch_size: 50
-
-# Each model must specify `model` and `provider`.
-# If overriding any default, add a short comment above the key explaining the reason.
+# -------------------------------------------------------------------
+# Models section:
+# - Every entry must have:
+#     model: canonical model string (provider-agnostic)
+#     provider: CAPSLOCK provider key (must match providers.yaml & keys_providers.LLMProviders)
+# - Overrides here take highest precedence (merge order: global_model_defaults → provider defaults → provider YAML → here)
+# - Only override what is truly model-specific.
+# -------------------------------------------------------------------
 models:
   EVALUATED_LLM_GPT_4O:
     model: "gpt-4o"
     provider: OPENAI
+    # Using all defaults for temperature, max_tokens, and batch_size from providers.yaml.
 
   EVALUATED_LLM_GPT_3_5_TURBO:
     model: "gpt-3.5-turbo"
     provider: OPENAI
-    enabled: false
+    enabled: false  # Disabled for current run scope.
 
   EVALUATED_LLM_GEMINI_1_5_PRO:
     model: "gemini-1.5-pro"
@@ -49,7 +45,7 @@ models:
   EVALUATED_LLM_MISTRAL_7B_INSTRUCT_V0_3:
     model: "Mistral-7B-Instruct-v0.3"
     provider: VULTR
-    # Override: reduced max_tokens from global default (2048) to 1536.
+    # Override: reduced max_tokens from global default (2048) to 1536
     # Reason: matches provider deployment limit; prevents request errors.
     max_tokens: 1536
     enabled: false
