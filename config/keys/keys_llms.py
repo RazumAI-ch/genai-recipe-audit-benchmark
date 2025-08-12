@@ -83,9 +83,9 @@ MISTRAL_7B_INSTRUCT = "mistral-7b-instruct"  # ACTION:REMOVE_AFTER; REF=config/m
 # ---- Models Enabled/Disabled for Benchmark (legacy — use YAML `enabled:` instead)
 DISABLED_BENCHMARK_MODELS = {          # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0; NOTE: Use models.*.enabled in YAML
     GEMINI_2_5_PRO,      # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
-    GPT_4O,             # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
-    GPT_35_TURBO,        # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
-    GEMINI_1_5_PRO,     # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
-    GEMINI_1_5_FLASH,  # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
+    # GPT_4O,             # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
+    # GPT_35_TURBO,        # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
+    # GEMINI_1_5_PRO,     # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
+    # GEMINI_1_5_FLASH,  # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
     # MISTRAL_7B_INSTRUCT,  # ACTION:REMOVE_AFTER; REF=config/models.yaml:version; WHEN:>=1.0.0
 }
