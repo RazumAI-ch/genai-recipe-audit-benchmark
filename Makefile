@@ -7,7 +7,14 @@ SCHEMA_VERSION = v1.5
 include .env
 export
 
-NUM ?= 1
+# --- MODIFIED SECTION ---
+# This logic allows running `make run 10` instead of `make run NUM=10`.
+# It grabs all command-line arguments after the target name (e.g., 'run').
+ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+# If a number is passed (e.g., '10'), use it. Otherwise, default to 1.
+NUM := $(or $(ARGS),1)
+# --- END MODIFIED SECTION ---
+
 DC = docker compose
 
 # ============================================
@@ -157,7 +164,7 @@ _refresh-schema-docs:
 		-f db/makefile_db_scripts/refresh_schema_docs.sql > /dev/null
 	@$(MAKE) _sort-schema-docs
 	@COUNT=$$($(DC) exec -T db \
-	psql -t -U $(POSTGRES_USER) -d $(POSTGRES_DB) \
+	psql -t -U $(POSTGGRES_USER) -d $(POSTGRES_DB) \
 		-c "SELECT COUNT(*) FROM schema_docs WHERE description LIKE '[TODO:%]'" | tr -d '[:space:]'); \
 	if [ "$$COUNT" -gt 0 ]; then \
 		echo ""; \
